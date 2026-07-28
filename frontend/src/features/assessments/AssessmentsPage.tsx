@@ -40,7 +40,7 @@ function ScoreBar({ pct }: { pct: number }) {
   const color = pct >= 80 ? '#E11919' : pct >= 50 ? '#fbbf24' : '#34d399'
   return (
     <div className="flex items-center gap-3 min-w-[120px]">
-      <div className="flex-1 h-1.5 rounded-none" style={{ background: 'rgba(255,255,255,0.06)' }}>
+      <div className="flex-1 h-1.5 rounded-none" style={{ background: 'rgb(var(--c-overlay) / calc(0.06 * var(--c-ovl-mult)))' }}>
         <div className="h-1.5 transition-all duration-700"
           style={{ width: `${pct}%`, background: `linear-gradient(to right, ${color}88, ${color})` }} />
       </div>
@@ -101,16 +101,16 @@ export function AssessmentsPage() {
 
   const statCard = (icon: React.ReactNode, label: string, value: React.ReactNode, sub: string) => (
     <div className="relative overflow-hidden px-5 py-4 flex gap-4 items-start"
-      style={{ background: '#0d0d0d', border: '1px solid rgba(255,255,255,0.06)', clipPath: 'polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,0 100%)' }}>
+      style={{ background: 'rgb(var(--c-bg-elevated))', border: '1px solid rgb(var(--c-overlay) / calc(0.06 * var(--c-ovl-mult)))', clipPath: 'polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,0 100%)' }}>
       <div className="absolute top-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(to right,#E11919,transparent)' }} />
       <div className="w-9 h-9 flex items-center justify-center shrink-0"
         style={{ background: 'rgba(225,25,25,0.1)', border: '1px solid rgba(225,25,25,0.2)' }}>
         {icon}
       </div>
       <div className="min-w-0">
-        <p style={{ color: 'rgba(155,163,167,0.38)', fontSize: '0.48rem', letterSpacing: '0.24em', textTransform: 'uppercase', marginBottom: 4 }}>{label}</p>
+        <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.38 * var(--c-sec-mult)))', fontSize: '0.48rem', letterSpacing: '0.24em', textTransform: 'uppercase', marginBottom: 4 }}>{label}</p>
         <div className="font-display text-off-white" style={{ fontSize: '1.55rem', lineHeight: 1, marginBottom: 3 }}>{value}</div>
-        <p style={{ color: 'rgba(155,163,167,0.32)', fontSize: '0.62rem' }}>{sub}</p>
+        <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.32 * var(--c-sec-mult)))', fontSize: '0.62rem' }}>{sub}</p>
       </div>
     </div>
   )
@@ -121,15 +121,15 @@ export function AssessmentsPage() {
       {/* ── Header ── */}
       <div className="flex items-end justify-between gap-4 flex-wrap">
         <div>
-          <p style={{ color: 'rgba(225,25,25,0.6)', fontSize: '0.58rem', letterSpacing: '0.4em', textTransform: 'uppercase', marginBottom: 6 }}>
-            Academy Management
+          <p style={{ color: 'rgba(225,25,25,var(--c-eyebrow-a))', fontSize: '0.58rem', letterSpacing: '0.4em', textTransform: 'uppercase', marginBottom: 6 }}>
+            Management
           </p>
           <h1 className="font-display text-off-white" style={{ fontSize: '2.4rem', letterSpacing: '0.1em', lineHeight: 1 }}>
             Assessments
           </h1>
           <div className="mt-2 flex items-center gap-3">
             <div className="h-[2px] w-10 bg-blood-red" />
-            <span style={{ color: 'rgba(155,163,167,0.38)', fontSize: '0.58rem', letterSpacing: '0.28em', textTransform: 'uppercase' }}>
+            <span style={{ color: 'rgb(var(--c-text-secondary) / calc(0.38 * var(--c-sec-mult)))', fontSize: '0.58rem', letterSpacing: '0.28em', textTransform: 'uppercase' }}>
               {list.length} records · {dateStr}
             </span>
           </div>
@@ -147,9 +147,9 @@ export function AssessmentsPage() {
           {(['', 'boxing', 'kickboxing'] as const).map(v => (
             <button key={v} onClick={() => setSport(v as Sport | '')}
               style={{
-                background: sport === v ? 'rgba(225,25,25,0.08)' : '#0a0a0a',
-                border: `1px solid ${sport === v ? 'rgba(225,25,25,0.4)' : 'rgba(255,255,255,0.07)'}`,
-                color: sport === v ? '#F5F5F5' : 'rgba(155,163,167,0.5)',
+                background: sport === v ? 'rgba(225,25,25,0.08)' : 'rgb(var(--c-bg-surface))',
+                border: `1px solid ${sport === v ? 'rgba(225,25,25,0.4)' : 'rgb(var(--c-overlay) / calc(0.07 * var(--c-ovl-mult)))'}`,
+                color: sport === v ? 'rgb(var(--c-text-primary))' : 'rgb(var(--c-text-secondary) / calc(0.5 * var(--c-sec-mult)))',
                 padding: '7px 14px', fontSize: '0.62rem', letterSpacing: '0.18em',
                 textTransform: 'uppercase', cursor: 'pointer', outline: 'none',
               }}>
@@ -190,9 +190,9 @@ export function AssessmentsPage() {
         <LoadingSkeleton rows={8} />
       ) : list.length === 0 ? (
         <div className="relative overflow-hidden text-center py-20"
-          style={{ background: 'linear-gradient(145deg,#0d0d0d,#080808)', border: '1px solid rgba(255,255,255,0.05)', clipPath: 'polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,0 100%)' }}>
+          style={{ background: 'linear-gradient(145deg,rgb(var(--c-bg-elevated)),rgb(var(--c-bg-input)))', border: '1px solid rgb(var(--c-overlay) / calc(0.05 * var(--c-ovl-mult)))', clipPath: 'polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,0 100%)' }}>
           <div className="absolute top-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(to right,#E11919,rgba(225,25,25,0.2) 50%,transparent)' }} />
-          <ClipboardList size={28} style={{ color: 'rgba(155,163,167,0.2)', margin: '0 auto 12px' }} />
+          <ClipboardList size={28} style={{ color: 'rgb(var(--c-text-secondary) / calc(0.2 * var(--c-sec-mult)))', margin: '0 auto 12px' }} />
           <p className="font-display text-off-white text-base mb-1">No assessments found</p>
           <p className="text-steel-gray/40 text-sm">Create a new entry to get started</p>
         </div>
@@ -204,13 +204,13 @@ export function AssessmentsPage() {
               {/* Date header */}
               <div className="flex items-center gap-4 mb-3">
                 <div className="flex items-center gap-2">
-                  <Calendar size={11} style={{ color: 'rgba(225,25,25,0.6)' }} />
+                  <Calendar size={11} style={{ color: 'rgba(225,25,25,var(--c-eyebrow-a))' }} />
                   <span className="font-display text-off-white" style={{ fontSize: '0.72rem', letterSpacing: '0.22em', textTransform: 'uppercase' }}>
                     {formatDate(dateKey)}
                   </span>
                 </div>
-                <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.05)' }} />
-                <span style={{ color: 'rgba(155,163,167,0.3)', fontSize: '0.6rem', letterSpacing: '0.14em' }}>
+                <div className="flex-1 h-px" style={{ background: 'rgb(var(--c-overlay) / calc(0.05 * var(--c-ovl-mult)))' }} />
+                <span style={{ color: 'rgb(var(--c-text-secondary) / calc(0.3 * var(--c-sec-mult)))', fontSize: '0.6rem', letterSpacing: '0.14em' }}>
                   {entries.length} session{entries.length !== 1 ? 's' : ''}
                 </span>
               </div>
@@ -222,8 +222,8 @@ export function AssessmentsPage() {
                     onClick={() => navigate(`/admin/students/${a.student}`)}
                     className="relative overflow-hidden flex items-center gap-5 px-5 py-4 cursor-pointer transition-all duration-150 group"
                     style={{
-                      background: '#0d0d0d',
-                      border: '1px solid rgba(255,255,255,0.05)',
+                      background: 'rgb(var(--c-bg-elevated))',
+                      border: '1px solid rgb(var(--c-overlay) / calc(0.05 * var(--c-ovl-mult)))',
                       clipPath: i === 0
                         ? 'polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,0 100%)'
                         : 'none',
@@ -235,8 +235,8 @@ export function AssessmentsPage() {
                     }}
                     onMouseLeave={e => {
                       const el = e.currentTarget as HTMLElement
-                      el.style.background = '#0d0d0d'
-                      el.style.borderColor = 'rgba(255,255,255,0.05)'
+                      el.style.background = 'rgb(var(--c-bg-elevated))'
+                      el.style.borderColor = 'rgb(var(--c-overlay) / calc(0.05 * var(--c-ovl-mult)))'
                     }}>
 
                     {/* Left accent */}
@@ -252,7 +252,7 @@ export function AssessmentsPage() {
                     {/* Name */}
                     <div className="min-w-[160px]">
                       <p className="text-off-white text-sm font-medium">{a.student_name ?? a.student}</p>
-                      <p style={{ color: 'rgba(155,163,167,0.35)', fontSize: '0.6rem', marginTop: 2 }}>
+                      <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.35 * var(--c-sec-mult)))', fontSize: '0.6rem', marginTop: 2 }}>
                         {new Date(a.assessment_date).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}
                       </p>
                     </div>
@@ -260,9 +260,9 @@ export function AssessmentsPage() {
                     {/* Sport badge */}
                     <div className="shrink-0 px-3 py-1"
                       style={{
-                        background: SPORT_COLOR[a.martial_art] ?? 'rgba(155,163,167,0.08)',
-                        border: `1px solid ${SPORT_BORDER[a.martial_art] ?? 'rgba(155,163,167,0.2)'}`,
-                        color: SPORT_TEXT[a.martial_art] ?? 'rgba(155,163,167,0.6)',
+                        background: SPORT_COLOR[a.martial_art] ?? 'rgb(var(--c-text-secondary) / calc(0.08 * var(--c-sec-mult)))',
+                        border: `1px solid ${SPORT_BORDER[a.martial_art] ?? 'rgb(var(--c-text-secondary) / calc(0.2 * var(--c-sec-mult)))'}`,
+                        color: SPORT_TEXT[a.martial_art] ?? 'rgb(var(--c-text-secondary) / calc(0.6 * var(--c-sec-mult)))',
                         fontSize: '0.55rem', letterSpacing: '0.2em', textTransform: 'uppercase',
                       }}>
                       {a.martial_art}
@@ -285,7 +285,7 @@ export function AssessmentsPage() {
                     </div>
 
                     {/* Arrow */}
-                    <ChevronRight size={14} style={{ color: 'rgba(155,163,167,0.2)', flexShrink: 0 }}
+                    <ChevronRight size={14} style={{ color: 'rgb(var(--c-text-secondary) / calc(0.2 * var(--c-sec-mult)))', flexShrink: 0 }}
                       className="group-hover:text-blood-red transition-colors" />
                   </div>
                 ))}

@@ -48,7 +48,7 @@ export function StudentDashboardPage() {
   if (loadingProgress && myStudent) {
     return (
       <div className="space-y-6">
-        <div className="h-8 w-48 bg-white/5 animate-pulse" />
+        <div className="h-8 w-48 bg-overlay/5 animate-pulse" />
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {Array.from({ length: 4 }).map((_, i) => <CardSkeleton key={i} />)}
         </div>
@@ -62,7 +62,7 @@ export function StudentDashboardPage() {
       {/* ── Header ─────────────────────────────────────── */}
       <div className="flex items-end justify-between gap-4 flex-wrap">
         <div>
-          <p style={{ color: 'rgba(225,25,25,0.6)', fontSize: '0.58rem', letterSpacing: '0.4em', textTransform: 'uppercase', marginBottom: 6 }}>
+          <p style={{ color: 'rgba(225,25,25,var(--c-eyebrow-a))', fontSize: '0.58rem', letterSpacing: '0.4em', textTransform: 'uppercase', marginBottom: 6 }}>
             Student Portal
           </p>
           <h1 className="font-display text-off-white" style={{ fontSize: '2.4rem', letterSpacing: '0.08em', lineHeight: 1 }}>
@@ -76,13 +76,13 @@ export function StudentDashboardPage() {
                 <span className="font-display text-steel-gray/60" style={{ fontSize: '0.7rem', letterSpacing: '0.2em' }}>
                   {myStudent.student_id}
                 </span>
-                <span className="text-white/10">·</span>
+                <span className="text-overlay/10">·</span>
                 <Badge variant={myStudent.sport}>{myStudent.sport}</Badge>
                 <Badge variant={myStudent.level}>{myStudent.level}</Badge>
               </>
             )}
           </div>
-          <p style={{ color: 'rgba(155,163,167,0.32)', fontSize: '0.56rem', letterSpacing: '0.26em', textTransform: 'uppercase', marginTop: 8 }}>
+          <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.32 * var(--c-sec-mult)))', fontSize: '0.56rem', letterSpacing: '0.26em', textTransform: 'uppercase', marginTop: 8 }}>
             {dateStr}
           </p>
         </div>
@@ -100,7 +100,7 @@ export function StudentDashboardPage() {
       {myRank > 0 && myRank <= 3 && (
         <div className="relative overflow-hidden"
           style={{
-            background: 'linear-gradient(105deg, #0a0a0a 0%, #0a0800 60%, rgba(251,191,36,0.05) 100%)',
+            background: 'linear-gradient(105deg, rgb(var(--c-bg-surface)) 0%, rgb(var(--c-amber-wash)) 60%, rgba(251,191,36,0.05) 100%)',
             border: '1px solid rgba(251,191,36,0.18)',
             clipPath: 'polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px))',
           }}>
@@ -129,8 +129,8 @@ export function StudentDashboardPage() {
       {trendData.length > 1 && (
         <div className="relative overflow-hidden"
           style={{
-            background: 'linear-gradient(145deg, #0d0d0d 0%, #080808 100%)',
-            border: '1px solid rgba(255,255,255,0.05)',
+            background: 'linear-gradient(145deg, rgb(var(--c-bg-elevated)) 0%, rgb(var(--c-bg-input)) 100%)',
+            border: '1px solid rgb(var(--c-overlay) / calc(0.05 * var(--c-ovl-mult)))',
             clipPath: 'polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%)',
           }}>
           <div className="absolute top-0 left-0 right-0 h-px"
@@ -150,13 +150,13 @@ export function StudentDashboardPage() {
                     <stop offset="100%" stopColor="#E11919" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-                <XAxis dataKey="date" tick={{ fill: '#9BA3A7', fontSize: 10 }} tickLine={false} axisLine={false} />
-                <YAxis domain={[0, 100]} tick={{ fill: '#9BA3A7', fontSize: 10 }} tickLine={false} axisLine={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgb(var(--c-overlay) / calc(0.04 * var(--c-ovl-mult)))" />
+                <XAxis dataKey="date" tick={{ fill: 'rgb(var(--c-text-secondary))', fontSize: 10 }} tickLine={false} axisLine={false} />
+                <YAxis domain={[0, 100]} tick={{ fill: 'rgb(var(--c-text-secondary))', fontSize: 10 }} tickLine={false} axisLine={false} />
                 <Tooltip
-                  contentStyle={{ background: '#0D0D0D', border: '1px solid rgba(225,25,25,0.2)', borderRadius: 0, fontSize: 12 }}
+                  contentStyle={{ background: 'rgb(var(--c-bg-elevated))', border: '1px solid rgba(225,25,25,0.2)', borderRadius: 0, fontSize: 12 }}
                   itemStyle={{ color: '#E11919' }}
-                  labelStyle={{ color: '#9BA3A7', fontSize: 11 }}
+                  labelStyle={{ color: 'rgb(var(--c-text-secondary))', fontSize: 11 }}
                   cursor={{ stroke: 'rgba(225,25,25,0.2)', strokeWidth: 1 }}
                 />
                 <Line type="monotone" dataKey="score" stroke="#E11919" strokeWidth={2}
@@ -174,8 +174,8 @@ export function StudentDashboardPage() {
       {latest && (
         <div className="relative overflow-hidden"
           style={{
-            background: 'linear-gradient(145deg, #0d0d0d 0%, #080808 100%)',
-            border: '1px solid rgba(255,255,255,0.05)',
+            background: 'linear-gradient(145deg, rgb(var(--c-bg-elevated)) 0%, rgb(var(--c-bg-input)) 100%)',
+            border: '1px solid rgb(var(--c-overlay) / calc(0.05 * var(--c-ovl-mult)))',
             clipPath: 'polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%)',
           }}>
           <div className="absolute top-0 left-0 right-0 h-px"
@@ -186,26 +186,26 @@ export function StudentDashboardPage() {
             <div className="flex items-center gap-3 mb-5">
               <div className="w-[3px] h-4 bg-blood-red" />
               <h3 className="font-display text-off-white text-xs uppercase tracking-[0.22em]">Latest Assessment</h3>
-              <span style={{ color: 'rgba(155,163,167,0.35)', fontSize: '0.58rem', letterSpacing: '0.2em' }}>
+              <span style={{ color: 'rgb(var(--c-text-secondary) / calc(0.35 * var(--c-sec-mult)))', fontSize: '0.58rem', letterSpacing: '0.2em' }}>
                 {new Date(latest.assessment_date).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}
               </span>
             </div>
 
             {/* Score + level */}
-            <div className="flex items-center gap-6 mb-5 pb-5" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+            <div className="flex items-center gap-6 mb-5 pb-5" style={{ borderBottom: '1px solid rgb(var(--c-overlay) / calc(0.05 * var(--c-ovl-mult)))' }}>
               <div>
-                <p style={{ color: 'rgba(155,163,167,0.4)', fontSize: '0.5rem', letterSpacing: '0.24em', textTransform: 'uppercase', marginBottom: 4 }}>Final Score</p>
+                <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.4 * var(--c-sec-mult)))', fontSize: '0.5rem', letterSpacing: '0.24em', textTransform: 'uppercase', marginBottom: 4 }}>Final Score</p>
                 <p className="font-display text-blood-red" style={{ fontSize: '3.2rem', lineHeight: 1 }}>
                   {latest.grade_percentage}<span style={{ fontSize: '1.4rem' }}>%</span>
                 </p>
               </div>
               <div>
-                <p style={{ color: 'rgba(155,163,167,0.4)', fontSize: '0.5rem', letterSpacing: '0.24em', textTransform: 'uppercase', marginBottom: 6 }}>Level</p>
+                <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.4 * var(--c-sec-mult)))', fontSize: '0.5rem', letterSpacing: '0.24em', textTransform: 'uppercase', marginBottom: 6 }}>Level</p>
                 <Badge variant={latest.level_at_assessment as any}>{latest.level_at_assessment}</Badge>
               </div>
               {latest.sessions_completed > 0 && (
                 <div>
-                  <p style={{ color: 'rgba(155,163,167,0.4)', fontSize: '0.5rem', letterSpacing: '0.24em', textTransform: 'uppercase', marginBottom: 4 }}>Sessions</p>
+                  <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.4 * var(--c-sec-mult)))', fontSize: '0.5rem', letterSpacing: '0.24em', textTransform: 'uppercase', marginBottom: 4 }}>Sessions</p>
                   <p className="font-display text-off-white text-xl">{latest.sessions_completed}</p>
                 </div>
               )}
@@ -214,8 +214,8 @@ export function StudentDashboardPage() {
             {/* Notes + Plan */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {latest.coach_notes ? (
-                <div className="p-4" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
-                  <p style={{ color: 'rgba(155,163,167,0.4)', fontSize: '0.5rem', letterSpacing: '0.26em', textTransform: 'uppercase', marginBottom: 8 }}>Coach Notes</p>
+                <div className="p-4" style={{ background: 'rgb(var(--c-overlay) / calc(0.02 * var(--c-ovl-mult)))', border: '1px solid rgb(var(--c-overlay) / calc(0.05 * var(--c-ovl-mult)))' }}>
+                  <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.4 * var(--c-sec-mult)))', fontSize: '0.5rem', letterSpacing: '0.26em', textTransform: 'uppercase', marginBottom: 8 }}>Coach Notes</p>
                   <p className="text-off-white/80 text-sm leading-relaxed">{latest.coach_notes}</p>
                 </div>
               ) : null}
@@ -233,8 +233,8 @@ export function StudentDashboardPage() {
       {!myStudent && (
         <div className="relative overflow-hidden text-center py-16"
           style={{
-            background: 'linear-gradient(145deg, #0d0d0d, #080808)',
-            border: '1px solid rgba(255,255,255,0.05)',
+            background: 'linear-gradient(145deg, rgb(var(--c-bg-elevated)), rgb(var(--c-bg-input)))',
+            border: '1px solid rgb(var(--c-overlay) / calc(0.05 * var(--c-ovl-mult)))',
           }}>
           <p className="text-steel-gray/50 text-sm">No student profile found. Contact your coach.</p>
         </div>

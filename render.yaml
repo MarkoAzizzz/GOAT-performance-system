@@ -37,3 +37,5 @@ services:
         value: ""
       - key: SYNC_INTERVAL_MINUTES
         value: "15"
+      - key: GROQ_API_KEY
+        sync: false

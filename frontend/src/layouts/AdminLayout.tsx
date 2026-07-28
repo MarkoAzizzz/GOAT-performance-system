@@ -6,6 +6,7 @@ import {
   Trophy, Settings, LogOut, Menu, X, ChevronRight,
 } from 'lucide-react'
 import { LiveClock } from '../components/ui/LiveClock'
+import { ChatBot } from '../components/ui/ChatBot'
 
 const navItems = [
   { to: '/admin', icon: LayoutDashboard, label: 'Dashboard', end: true },
@@ -32,14 +33,14 @@ export function AdminLayout() {
     <div className="min-h-screen bg-coal flex scanlines">
       {/* Sidebar */}
       <aside className={`
-        fixed inset-y-0 left-0 z-50 w-64 bg-[#060606] border-r border-white/[0.05]
+        fixed inset-y-0 left-0 z-50 w-64 bg-sidebar border-r border-overlay/[0.05]
         flex flex-col transition-transform duration-300 ease-out
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
         lg:translate-x-0 lg:static lg:flex
       `}>
 
         {/* Logo */}
-        <div className="px-5 py-6 border-b border-white/[0.05] flex items-center gap-3">
+        <div className="px-5 py-6 border-b border-overlay/[0.05] flex items-center gap-3">
           <div className="logo-pulse-ring shrink-0">
             <img
               src="/logo-badge.png"
@@ -66,7 +67,7 @@ export function AdminLayout() {
                 animate-slide-in-left stagger-${Math.min(i + 1, 6)}
                 ${isActive
                   ? 'bg-blood-red/10 text-off-white nav-active-glow'
-                  : 'text-steel-gray hover:text-off-white hover:bg-white/[0.035] border-l-2 border-transparent'
+                  : 'text-steel-gray hover:text-off-white hover:bg-overlay/[0.035] border-l-2 border-transparent'
                 }`
               }
             >
@@ -90,7 +91,7 @@ export function AdminLayout() {
         </nav>
 
         {/* User footer */}
-        <div className="px-2 py-4 border-t border-white/[0.05] space-y-1">
+        <div className="px-2 py-4 border-t border-overlay/[0.05] space-y-1">
           <div className="flex items-center gap-3 px-3 py-2">
             <div className="w-8 h-8 bg-blood-red/10 border border-blood-red/20 flex items-center justify-center clip-corner-sm shrink-0
               transition-all duration-300 hover:bg-blood-red/20 hover:border-blood-red/40">
@@ -125,7 +126,7 @@ export function AdminLayout() {
       {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top bar */}
-        <header className="h-14 bg-[#060606] border-b border-white/[0.05] flex items-center px-6 gap-4 sticky top-0 z-30">
+        <header className="h-14 bg-sidebar border-b border-overlay/[0.05] flex items-center px-6 gap-4 sticky top-0 z-30">
           <button
             className="lg:hidden text-steel-gray hover:text-off-white transition-colors"
             onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -134,7 +135,7 @@ export function AdminLayout() {
           </button>
 
           {/* Breadcrumb line */}
-          <div className="hidden lg:block h-3 w-px bg-white/10" />
+          <div className="hidden lg:block h-3 w-px bg-overlay/10" />
 
           <div className="flex-1" />
 
@@ -144,7 +145,7 @@ export function AdminLayout() {
             <span className="text-[9px] uppercase tracking-widest text-emerald-400/60">Live</span>
           </div>
 
-          <div className="h-3 w-px bg-white/10" />
+          <div className="h-3 w-px bg-overlay/10" />
           <LiveClock />
         </header>
 
@@ -155,6 +156,7 @@ export function AdminLayout() {
           </div>
         </main>
       </div>
+      <ChatBot />
     </div>
   )
 }

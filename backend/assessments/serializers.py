@@ -32,7 +32,7 @@ class AssessmentListSerializer(serializers.ModelSerializer):
     class Meta:
         model = AssessmentSession
         fields = [
-            'id', 'student_id', 'student_name', 'assessment_date',
+            'id', 'student', 'student_id', 'student_name', 'assessment_date',
             'martial_art', 'overall_score', 'grade_percentage',
             'level_at_assessment', 'sessions_completed', 'created_at',
         ]

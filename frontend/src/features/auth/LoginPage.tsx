@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { Lock } from 'lucide-react'
 import { useAuth } from './AuthContext'
 
 const schema = z.object({
@@ -19,6 +20,7 @@ export function LoginPage() {
   const [serverError, setServerError] = useState('')
   const [phase, setPhase] = useState<'intro' | 'form'>('intro')
   const [go, setGo] = useState(false)
+  const [showForgotHelp, setShowForgotHelp] = useState(false)
 
   useEffect(() => {
     const t = setTimeout(() => setGo(true), 80)
@@ -43,7 +45,7 @@ export function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#020202] flex items-center justify-center overflow-hidden relative">
+    <div data-theme="dark" className="min-h-screen bg-[#020202] flex items-center justify-center overflow-hidden relative">
 
       <style>{`
         /* ── Intro sequence ────────────────────────────── */
@@ -256,7 +258,7 @@ export function LoginPage() {
           />
         </div>
 
-        {/* Flanking lines + Academy label */}
+        {/* Flanking lines + label */}
         <div className="flex items-center gap-0 mt-2" style={{ width: 320 }}>
           <div style={{
             flex: 1, height: 1,
@@ -275,7 +277,7 @@ export function LoginPage() {
             animation: go ? 'fade-up-soft 0.45s ease forwards 1.6s' : 'none',
             opacity: 0,
           }}>
-            Martial Arts Academy
+            Martial Arts
           </span>
           <div style={{
             flex: 1, height: 1,
@@ -361,7 +363,7 @@ export function LoginPage() {
         <div className="flex items-center gap-3 mt-3 mb-4" style={{ width: 280 }}>
           <div className="flex-1 h-px" style={{ background:'linear-gradient(to right,transparent,rgba(225,25,25,0.38))' }} />
           <span style={{ color:'rgba(155,163,167,0.34)', fontSize:'0.56rem', letterSpacing:'0.46em', textTransform:'uppercase', whiteSpace:'nowrap' }}>
-            Martial Arts Academy
+            Martial Arts
           </span>
           <div className="flex-1 h-px" style={{ background:'linear-gradient(to left,transparent,rgba(225,25,25,0.38))' }} />
         </div>
@@ -370,7 +372,7 @@ export function LoginPage() {
         <div className="w-full" style={{ animation: phase==='form' ? 'form-rise 0.65s ease 0.22s both' : 'none' }}>
           <div className="mb-4">
             <p style={{ color:'rgba(225,25,25,0.58)', fontSize:'0.57rem', letterSpacing:'0.42em', textTransform:'uppercase', marginBottom:8 }}>
-              Academy Portal
+              Member Portal
             </p>
             <h2 className="text-off-white font-display" style={{ fontSize:'2.2rem', letterSpacing:'0.12em', lineHeight:1 }}>
               Sign In
@@ -394,7 +396,7 @@ export function LoginPage() {
                 <label style={{ display:'block', color:'rgba(155,163,167,0.5)', fontSize:'0.57rem', letterSpacing:'0.3em', textTransform:'uppercase' }}>
                   Email Address
                 </label>
-                <input {...register('email')} type="email" autoComplete="email" placeholder="coach@goatacademy.com"
+                <input {...register('email')} type="email" autoComplete="email" placeholder="coach@goat.com"
                   className="w-full text-off-white text-sm px-4 py-2.5 outline-none placeholder:text-white/10 transition-all duration-300"
                   style={{ background:'rgba(255,255,255,0.025)', borderBottom:'1px solid rgba(255,255,255,0.08)', borderTop:'none', borderLeft:'none', borderRight:'none' }}
                   onFocus={e => { e.currentTarget.style.borderBottomColor='#E11919'; e.currentTarget.style.background='rgba(225,25,25,0.04)' }}
@@ -414,6 +416,16 @@ export function LoginPage() {
                   onBlur={e => { e.currentTarget.style.borderBottomColor='rgba(255,255,255,0.08)'; e.currentTarget.style.background='rgba(255,255,255,0.025)' }}
                 />
                 {errors.password && <p className="text-blood-red text-xs">{errors.password.message}</p>}
+                <div className="flex justify-end pt-0.5">
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotHelp(v => !v)}
+                    className="cursor-pointer transition-colors duration-200 hover:text-blood-red"
+                    style={{ color: 'rgba(155,163,167,0.5)', fontSize: '0.62rem', letterSpacing: '0.08em' }}
+                  >
+                    Forgot password?
+                  </button>
+                </div>
               </div>
 
               {serverError && (
@@ -432,7 +444,7 @@ export function LoginPage() {
                 >
                   <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
                     style={{ background:'linear-gradient(105deg,transparent 30%,rgba(255,255,255,0.13) 50%,transparent 70%)' }} />
-                  <span className="relative">{isSubmitting ? 'Signing in…' : 'Enter the Academy'}</span>
+                  <span className="relative">{isSubmitting ? 'Signing in…' : 'Enter the System'}</span>
                 </button>
               </div>
             </div>
@@ -453,6 +465,55 @@ export function LoginPage() {
           </div>
         </div>
       </div>
+
+      {/* Forgot-password — radial spotlight, no card */}
+      {showForgotHelp && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center px-4"
+          style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)', animation: 'fade-up-soft 0.25s ease both' }}
+          onClick={() => setShowForgotHelp(false)}
+        >
+          <div
+            className="relative flex flex-col items-center text-center"
+            style={{ maxWidth: 300, animation: 'form-rise 0.4s cubic-bezier(0.22,0.61,0.36,1) both' }}
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Spotlight glow */}
+            <div className="absolute pointer-events-none" style={{
+              top: -60, left: '50%', transform: 'translateX(-50%)',
+              width: 260, height: 260, borderRadius: '50%',
+              background: 'radial-gradient(ellipse at center, rgba(225,25,25,0.22) 0%, rgba(225,25,25,0.07) 45%, transparent 72%)',
+            }} />
+
+            {/* Glowing lock icon with idle pulse rings */}
+            <div className="relative flex items-center justify-center mb-5" style={{ width: 60, height: 60 }}>
+              <div className="absolute rounded-full border border-blood-red/50" style={{ width: 60, height: 60, opacity: 0, animation: 'ring-idle 2.4s ease-out infinite' }} />
+              <div className="absolute rounded-full border border-blood-red/28" style={{ width: 60, height: 60, opacity: 0, animation: 'ring-idle2 2.4s ease-out infinite 1.2s' }} />
+              <div className="relative rounded-full flex items-center justify-center" style={{
+                width: 56, height: 56,
+                boxShadow: '0 0 0 1px rgba(225,25,25,0.45), 0 0 28px 6px rgba(225,25,25,0.28)',
+              }}>
+                <Lock size={20} className="text-blood-red" />
+              </div>
+            </div>
+
+            <p style={{ color: 'rgba(225,25,25,0.75)', fontSize: '0.56rem', letterSpacing: '0.36em', textTransform: 'uppercase', marginBottom: 10 }}>
+              Access Locked
+            </p>
+            <p className="text-off-white" style={{ fontSize: '1rem', lineHeight: 1.55, marginBottom: 20 }}>
+              Your admin holds the keys — reach out and they'll get you back in.
+            </p>
+            <button
+              type="button"
+              onClick={() => setShowForgotHelp(false)}
+              className="cursor-pointer transition-colors duration-200 hover:text-blood-red"
+              style={{ color: 'rgba(155,163,167,0.55)', fontSize: '0.62rem', letterSpacing: '0.3em', textTransform: 'uppercase' }}
+            >
+              Got It
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -9,7 +9,7 @@ const styles: Record<Variant, string> = {
   success: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
   error: 'bg-blood-red/10 text-blood-red border-blood-red/20',
   warning: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
-  default: 'bg-white/5 text-steel-gray border-white/10',
+  default: 'bg-overlay/5 text-steel-gray border-overlay/10',
 }
 
 interface Props {

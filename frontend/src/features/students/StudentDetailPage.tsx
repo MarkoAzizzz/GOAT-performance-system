@@ -13,11 +13,11 @@ import { useToast } from '../../components/ui/Toast'
 import { ArrowLeft, UserX, Trash2, ClipboardList, Award, TrendingUp, Plus, ChevronRight } from 'lucide-react'
 
 const C = {
-  tooltip: { background: '#0D0D0D', border: '1px solid rgba(225,25,25,0.2)', borderRadius: 0, fontSize: 12 },
-  label:   { color: '#9BA3A7', fontSize: 11 },
+  tooltip: { background: 'rgb(var(--c-bg-elevated))', border: '1px solid rgba(225,25,25,0.2)', borderRadius: 0, fontSize: 12 },
+  label:   { color: 'rgb(var(--c-text-secondary))', fontSize: 11 },
   item:    { color: '#E11919' },
-  tick:    { fill: '#9BA3A7', fontSize: 10 },
-  grid:    'rgba(255,255,255,0.04)',
+  tick:    { fill: 'rgb(var(--c-text-secondary))', fontSize: 10 },
+  grid:    'rgb(var(--c-overlay) / calc(0.04 * var(--c-ovl-mult)))',
 }
 
 const LEVEL_COLOR: Record<string, string> = {
@@ -29,7 +29,7 @@ const LEVEL_COLOR: Record<string, string> = {
 function Card({ children }: { children: React.ReactNode }) {
   return (
     <div className="relative overflow-hidden"
-      style={{ background: 'linear-gradient(145deg,#0d0d0d,#080808)', border: '1px solid rgba(255,255,255,0.05)', clipPath: 'polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,0 100%)' }}>
+      style={{ background: 'linear-gradient(145deg,rgb(var(--c-bg-elevated)),rgb(var(--c-bg-input)))', border: '1px solid rgb(var(--c-overlay) / calc(0.05 * var(--c-ovl-mult)))', clipPath: 'polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,0 100%)' }}>
       <div className="absolute top-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(to right,#E11919,rgba(225,25,25,0.2) 50%,transparent)' }} />
       <div className="absolute top-0 left-0 bottom-0 w-px" style={{ background: 'linear-gradient(to bottom,#E11919,transparent 60%)' }} />
       <div className="p-6">{children}</div>
@@ -53,7 +53,7 @@ function DeleteConfirmModal({ name, onConfirm, onCancel, loading }: {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(6px)' }}>
       <div className="relative w-full max-w-md"
-        style={{ background: 'linear-gradient(145deg,#0f0606,#0a0303)', border: '1px solid rgba(225,25,25,0.3)', clipPath: 'polygon(0 0,calc(100% - 16px) 0,100% 16px,100% 100%,0 100%)' }}>
+        style={{ background: 'linear-gradient(145deg,rgb(var(--c-accent-wash)),rgb(var(--c-bg-elevated)))', border: '1px solid rgba(225,25,25,0.3)', clipPath: 'polygon(0 0,calc(100% - 16px) 0,100% 16px,100% 100%,0 100%)' }}>
         <div className="absolute top-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(to right,#E11919,rgba(225,25,25,0.2) 50%,transparent)' }} />
         <div className="absolute top-0 left-0 bottom-0 w-px" style={{ background: 'linear-gradient(to bottom,#E11919,transparent 60%)' }} />
         <div className="p-6 space-y-5">
@@ -78,9 +78,9 @@ function DeleteConfirmModal({ name, onConfirm, onCancel, loading }: {
           <div className="flex gap-3 pt-1">
             <button onClick={onCancel} disabled={loading}
               className="flex-1 py-2.5 text-xs uppercase tracking-widest font-display transition-all"
-              style={{ border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(155,163,167,0.6)', background: 'rgba(255,255,255,0.02)' }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.2)'; (e.currentTarget as HTMLElement).style.color = '#F5F5F5' }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.08)'; (e.currentTarget as HTMLElement).style.color = 'rgba(155,163,167,0.6)' }}>
+              style={{ border: '1px solid rgb(var(--c-overlay) / calc(0.08 * var(--c-ovl-mult)))', color: 'rgb(var(--c-text-secondary) / calc(0.6 * var(--c-sec-mult)))', background: 'rgb(var(--c-overlay) / calc(0.02 * var(--c-ovl-mult)))' }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgb(var(--c-overlay) / calc(0.2 * var(--c-ovl-mult)))'; (e.currentTarget as HTMLElement).style.color = 'rgb(var(--c-text-primary))' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgb(var(--c-overlay) / calc(0.08 * var(--c-ovl-mult)))'; (e.currentTarget as HTMLElement).style.color = 'rgb(var(--c-text-secondary) / calc(0.6 * var(--c-sec-mult)))' }}>
               Cancel
             </button>
             <button onClick={onConfirm} disabled={loading}
@@ -159,7 +159,7 @@ export function StudentDetailPage() {
   const initial = (s?.full_name ?? s?.user?.full_name ?? '?')[0].toUpperCase()
 
   const levelKey = (latest?.level_at_assessment ?? s?.level ?? '').toLowerCase()
-  const levelColor = LEVEL_COLOR[levelKey] ?? '#9BA3A7'
+  const levelColor = LEVEL_COLOR[levelKey] ?? 'rgb(var(--c-text-secondary))'
 
   return (
     <div className="space-y-8">
@@ -168,9 +168,9 @@ export function StudentDetailPage() {
       <div className="flex items-center justify-between">
         <button onClick={() => navigate('/admin/students')}
           className="flex items-center gap-2 transition-colors duration-200"
-          style={{ color: 'rgba(155,163,167,0.5)', fontSize: '0.6rem', letterSpacing: '0.22em', textTransform: 'uppercase' }}
-          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = '#F5F5F5' }}
-          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(155,163,167,0.5)' }}>
+          style={{ color: 'rgb(var(--c-text-secondary) / calc(0.5 * var(--c-sec-mult)))', fontSize: '0.6rem', letterSpacing: '0.22em', textTransform: 'uppercase' }}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'rgb(var(--c-text-primary))' }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'rgb(var(--c-text-secondary) / calc(0.5 * var(--c-sec-mult)))' }}>
           <ArrowLeft size={12} /> All Students
         </button>
 
@@ -186,7 +186,7 @@ export function StudentDetailPage() {
 
       {/* ── Hero card ─────────────────────────────────────── */}
       <div className="relative overflow-hidden"
-        style={{ background: 'linear-gradient(105deg,#0f0606,#0a0303,rgba(225,25,25,0.04))', border: '1px solid rgba(225,25,25,0.15)', clipPath: 'polygon(0 0,calc(100% - 20px) 0,100% 20px,100% 100%,20px 100%,0 calc(100% - 20px))' }}>
+        style={{ background: 'linear-gradient(105deg,rgb(var(--c-accent-wash)),rgb(var(--c-bg-elevated)),rgba(225,25,25,0.04))', border: '1px solid rgba(225,25,25,0.15)', clipPath: 'polygon(0 0,calc(100% - 20px) 0,100% 20px,100% 100%,20px 100%,0 calc(100% - 20px))' }}>
         <div className="absolute left-0 top-0 bottom-0 w-[3px]" style={{ background: 'linear-gradient(to bottom,#E11919,rgba(225,25,25,0.2))' }} />
         <div className="absolute top-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(to right,#E11919,rgba(225,25,25,0.3) 50%,transparent)' }} />
 
@@ -203,7 +203,7 @@ export function StudentDetailPage() {
               <h2 className="font-display text-off-white text-2xl">{s?.full_name ?? s?.user?.full_name}</h2>
               <span className="font-display text-blood-red text-sm">{s?.student_id}</span>
             </div>
-            <p style={{ color: 'rgba(155,163,167,0.45)', fontSize: '0.72rem', marginBottom: 10 }}>{s?.email ?? s?.user?.email}</p>
+            <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.45 * var(--c-sec-mult)))', fontSize: '0.72rem', marginBottom: 10 }}>{s?.email ?? s?.user?.email}</p>
             <div className="flex flex-wrap gap-2">
               <Badge variant={s?.sport}>{s?.sport}</Badge>
               {latest && <Badge variant={latest.level_at_assessment as any}>{latest.level_at_assessment}</Badge>}
@@ -214,20 +214,20 @@ export function StudentDetailPage() {
           {/* Score highlights */}
           <div className="flex gap-8 shrink-0">
             <div className="text-right">
-              <p style={{ color: 'rgba(155,163,167,0.45)', fontSize: '0.52rem', letterSpacing: '0.26em', textTransform: 'uppercase', marginBottom: 4 }}>Latest Score</p>
+              <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.45 * var(--c-sec-mult)))', fontSize: '0.52rem', letterSpacing: '0.26em', textTransform: 'uppercase', marginBottom: 4 }}>Latest Score</p>
               <p className="font-display text-blood-red" style={{ fontSize: '2.4rem', lineHeight: 1 }}>
                 {prog?.current_grade != null ? `${Number(prog.current_grade).toFixed(1)}%` : '—'}
               </p>
             </div>
             <div className="text-right">
-              <p style={{ color: 'rgba(155,163,167,0.45)', fontSize: '0.52rem', letterSpacing: '0.26em', textTransform: 'uppercase', marginBottom: 4 }}>Improvement</p>
+              <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.45 * var(--c-sec-mult)))', fontSize: '0.52rem', letterSpacing: '0.26em', textTransform: 'uppercase', marginBottom: 4 }}>Improvement</p>
               <p className="font-display" style={{ fontSize: '2rem', lineHeight: 1, color: (prog?.improvement ?? 0) >= 0 ? '#34d399' : '#E11919' }}>
                 {prog?.improvement != null ? `${prog.improvement > 0 ? '+' : ''}${prog.improvement}%` : '—'}
               </p>
             </div>
             {latest && (
               <div className="text-right">
-                <p style={{ color: 'rgba(155,163,167,0.45)', fontSize: '0.52rem', letterSpacing: '0.26em', textTransform: 'uppercase', marginBottom: 4 }}>Level</p>
+                <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.45 * var(--c-sec-mult)))', fontSize: '0.52rem', letterSpacing: '0.26em', textTransform: 'uppercase', marginBottom: 4 }}>Level</p>
                 <p className="font-display text-lg capitalize" style={{ color: levelColor }}>{latest.level_at_assessment}</p>
               </div>
             )}
@@ -239,9 +239,9 @@ export function StudentDetailPage() {
               <button
                 onClick={() => { if (confirm('Deactivate this student?')) deactivateMutation.mutate() }}
                 className="flex items-center gap-2 font-display text-xs tracking-[0.16em] uppercase px-4 py-2 transition-all duration-200"
-                style={{ border: '1px solid rgba(155,163,167,0.2)', color: 'rgba(155,163,167,0.7)', background: 'rgba(155,163,167,0.04)', cursor: 'pointer', minWidth: 130 }}
+                style={{ border: '1px solid rgb(var(--c-text-secondary) / calc(0.2 * var(--c-sec-mult)))', color: 'rgb(var(--c-text-secondary) / calc(0.7 * var(--c-sec-mult)))', background: 'rgb(var(--c-text-secondary) / calc(0.04 * var(--c-sec-mult)))', cursor: 'pointer', minWidth: 130 }}
                 onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.borderColor = 'rgba(225,25,25,0.5)'; el.style.color = '#E11919'; el.style.background = 'rgba(225,25,25,0.08)' }}
-                onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.borderColor = 'rgba(155,163,167,0.2)'; el.style.color = 'rgba(155,163,167,0.7)'; el.style.background = 'rgba(155,163,167,0.04)' }}>
+                onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.borderColor = 'rgb(var(--c-text-secondary) / calc(0.2 * var(--c-sec-mult)))'; el.style.color = 'rgb(var(--c-text-secondary) / calc(0.7 * var(--c-sec-mult)))'; el.style.background = 'rgb(var(--c-text-secondary) / calc(0.04 * var(--c-sec-mult)))' }}>
                 <UserX size={13} /> Deactivate
               </button>
             )}
@@ -289,9 +289,9 @@ export function StudentDetailPage() {
               <SectionTitle title="Latest Pillar Scores" />
               <ResponsiveContainer width="100%" height={200}>
                 <RadarChart data={radarData}>
-                  <PolarGrid stroke="rgba(255,255,255,0.08)" />
-                  <PolarAngleAxis dataKey="pillar" tick={{ fill: '#9BA3A7', fontSize: 10 }} />
-                  <PolarRadiusAxis domain={[0, 100]} tick={{ fill: '#9BA3A7', fontSize: 8 }} />
+                  <PolarGrid stroke="rgb(var(--c-overlay) / calc(0.08 * var(--c-ovl-mult)))" />
+                  <PolarAngleAxis dataKey="pillar" tick={{ fill: 'rgb(var(--c-text-secondary))', fontSize: 10 }} />
+                  <PolarRadiusAxis domain={[0, 100]} tick={{ fill: 'rgb(var(--c-text-secondary))', fontSize: 8 }} />
                   <Radar name="Score" dataKey="score" stroke="#E11919" fill="#E11919" fillOpacity={0.18} />
                 </RadarChart>
               </ResponsiveContainer>
@@ -305,7 +305,7 @@ export function StudentDetailPage() {
         <LoadingSkeleton rows={4} />
       ) : history.length === 0 ? (
         <div className="relative overflow-hidden text-center py-14"
-          style={{ background: 'linear-gradient(145deg,#0d0d0d,#080808)', border: '1px solid rgba(255,255,255,0.05)', clipPath: 'polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,0 100%)' }}>
+          style={{ background: 'linear-gradient(145deg,rgb(var(--c-bg-elevated)),rgb(var(--c-bg-input)))', border: '1px solid rgb(var(--c-overlay) / calc(0.05 * var(--c-ovl-mult)))', clipPath: 'polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,0 100%)' }}>
           <div className="absolute top-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(to right,#E11919,rgba(225,25,25,0.2) 50%,transparent)' }} />
           <p className="text-steel-gray/40 text-sm mb-3">No assessments yet</p>
           <button
@@ -323,10 +323,10 @@ export function StudentDetailPage() {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                <tr style={{ borderBottom: '1px solid rgb(var(--c-overlay) / calc(0.05 * var(--c-ovl-mult)))' }}>
                   {['#', 'Date', 'Grade', 'Level', 'Coach Notes', 'Action Plan', ''].map(h => (
                     <th key={h} className="text-left"
-                      style={{ padding: '6px 16px 10px 0', color: 'rgba(155,163,167,0.4)', fontSize: '0.52rem', letterSpacing: '0.22em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+                      style={{ padding: '6px 16px 10px 0', color: 'rgb(var(--c-text-secondary) / calc(0.4 * var(--c-sec-mult)))', fontSize: '0.52rem', letterSpacing: '0.22em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
                       {h}
                     </th>
                   ))}
@@ -336,15 +336,15 @@ export function StudentDetailPage() {
                 {history.map((sess: any, i: number) => (
                   <tr key={sess.id}
                     onClick={() => navigate('/admin/assessments/entry', { state: { preselect: s, viewDate: sess.assessment_date } })}
-                    style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', cursor: 'pointer' }}
+                    style={{ borderBottom: '1px solid rgb(var(--c-overlay) / calc(0.04 * var(--c-ovl-mult)))', cursor: 'pointer' }}
                     onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(225,25,25,0.04)'; (e.currentTarget as HTMLElement).style.outline = '1px solid rgba(225,25,25,0.12)' }}
                     onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = ''; (e.currentTarget as HTMLElement).style.outline = 'none' }}>
-                    <td style={{ padding: '12px 16px 12px 0', color: 'rgba(155,163,167,0.25)', fontSize: 11, fontFamily: 'var(--font-display)' }}>
+                    <td style={{ padding: '12px 16px 12px 0', color: 'rgb(var(--c-text-secondary) / calc(0.25 * var(--c-sec-mult)))', fontSize: 11, fontFamily: 'var(--font-display)' }}>
                       {history.length - i}
                     </td>
                     <td style={{ padding: '12px 16px 12px 0', whiteSpace: 'nowrap' }}>
                       <div>
-                        <span style={{ color: 'rgba(245,245,245,0.75)', fontSize: '0.8rem' }}>
+                        <span style={{ color: 'rgb(var(--c-text-primary) / 0.75)', fontSize: '0.8rem' }}>
                           {new Date(sess.assessment_date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
                         </span>
                         {i === 0 && (
@@ -360,15 +360,15 @@ export function StudentDetailPage() {
                     <td style={{ padding: '12px 16px 12px 0' }}>
                       <Badge variant={sess.level_at_assessment as any}>{sess.level_at_assessment}</Badge>
                     </td>
-                    <td style={{ padding: '12px 16px 12px 0', color: 'rgba(155,163,167,0.5)', fontSize: '0.72rem', maxWidth: 200 }}>
+                    <td style={{ padding: '12px 16px 12px 0', color: 'rgb(var(--c-text-secondary) / calc(0.5 * var(--c-sec-mult)))', fontSize: '0.72rem', maxWidth: 200 }}>
                       {sess.coach_notes ? (
                         <span className="block truncate" title={sess.coach_notes}>{sess.coach_notes}</span>
-                      ) : <span style={{ color: 'rgba(155,163,167,0.2)' }}>—</span>}
+                      ) : <span style={{ color: 'rgb(var(--c-text-secondary) / calc(0.2 * var(--c-sec-mult)))' }}>—</span>}
                     </td>
-                    <td style={{ padding: '12px 0', color: 'rgba(155,163,167,0.5)', fontSize: '0.72rem', maxWidth: 200 }}>
+                    <td style={{ padding: '12px 0', color: 'rgb(var(--c-text-secondary) / calc(0.5 * var(--c-sec-mult)))', fontSize: '0.72rem', maxWidth: 200 }}>
                       {sess.action_plan ? (
                         <span className="block truncate italic" title={sess.action_plan}>{sess.action_plan}</span>
-                      ) : <span style={{ color: 'rgba(155,163,167,0.2)' }}>—</span>}
+                      ) : <span style={{ color: 'rgb(var(--c-text-secondary) / calc(0.2 * var(--c-sec-mult)))' }}>—</span>}
                     </td>
                     <td style={{ padding: '12px 0 12px 12px', width: 28 }}>
                       <ChevronRight size={13} style={{ color: 'rgba(225,25,25,0.35)' }} />

@@ -15,8 +15,8 @@ export function AdminDashboardPage() {
   })
 
   const gradeData = data ? [
-    { name: 'Beginner',      value: data.grade_distribution?.beginner      ?? 0, fill: '#10b981' },
-    { name: 'Intermediate',  value: data.grade_distribution?.intermediate   ?? 0, fill: '#f59e0b' },
+    { name: 'Beginner',      value: data.grade_distribution?.beginner      ?? 0, fill: 'var(--c-chart-green)' },
+    { name: 'Intermediate',  value: data.grade_distribution?.intermediate   ?? 0, fill: 'var(--c-chart-amber)' },
     { name: 'Advanced',      value: data.grade_distribution?.advanced       ?? 0, fill: '#E11919' },
   ] : []
 
@@ -31,15 +31,15 @@ export function AdminDashboardPage() {
       {/* ── Page header ─────────────────────────────────── */}
       <div className="flex items-end justify-between gap-4 flex-wrap">
         <div>
-          <p style={{ color: 'rgba(225,25,25,0.6)', fontSize: '0.58rem', letterSpacing: '0.4em', textTransform: 'uppercase', marginBottom: 6 }}>
-            Academy Performance
+          <p style={{ color: 'rgba(225,25,25,var(--c-eyebrow-a))', fontSize: '0.58rem', letterSpacing: '0.4em', textTransform: 'uppercase', marginBottom: 6 }}>
+            Performance
           </p>
           <h1 className="font-display text-off-white" style={{ fontSize: '2.4rem', letterSpacing: '0.1em', lineHeight: 1 }}>
             Dashboard
           </h1>
           <div className="mt-2 flex items-center gap-3">
             <div className="h-[2px] w-10 bg-blood-red" />
-            <span style={{ color: 'rgba(155,163,167,0.38)', fontSize: '0.58rem', letterSpacing: '0.28em', textTransform: 'uppercase' }}>
+            <span style={{ color: 'rgb(var(--c-text-secondary) / calc(0.38 * var(--c-sec-mult)))', fontSize: '0.58rem', letterSpacing: '0.28em', textTransform: 'uppercase' }}>
               {dateStr}
             </span>
           </div>
@@ -76,8 +76,9 @@ export function AdminDashboardPage() {
       {data?.biggest_improvement?.student_name && (
         <div className="relative overflow-hidden"
           style={{
-            background: 'linear-gradient(105deg, #0a0a0a 0%, #0f0606 60%, rgba(225,25,25,0.06) 100%)',
+            background: 'linear-gradient(105deg, rgb(var(--c-bg-surface)) 0%, rgb(var(--c-accent-wash)) 60%, rgba(225,25,25,0.06) 100%)',
             border: '1px solid rgba(225,25,25,0.18)',
+            boxShadow: 'var(--c-card-shadow)',
             clipPath: 'polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px))',
           }}
         >
@@ -102,7 +103,7 @@ export function AdminDashboardPage() {
             </div>
 
             <div className="flex-1 min-w-0">
-              <p style={{ color: 'rgba(155,163,167,0.5)', fontSize: '0.57rem', letterSpacing: '0.36em', textTransform: 'uppercase', marginBottom: 4 }}>
+              <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.5 * var(--c-sec-mult)))', fontSize: '0.57rem', letterSpacing: '0.36em', textTransform: 'uppercase', marginBottom: 4 }}>
                 Biggest Improvement — This Period
               </p>
               <p className="font-display text-off-white truncate" style={{ fontSize: '1.35rem', letterSpacing: '0.08em' }}>
@@ -128,8 +129,9 @@ export function AdminDashboardPage() {
         {/* Weekly trend */}
         <div className="relative overflow-hidden"
           style={{
-            background: 'linear-gradient(145deg, #0d0d0d 0%, #080808 100%)',
-            border: '1px solid rgba(255,255,255,0.05)',
+            background: 'linear-gradient(145deg, rgb(var(--c-bg-elevated)) 0%, rgb(var(--c-bg-input)) 100%)',
+            border: '1px solid rgb(var(--c-overlay) / calc(0.05 * var(--c-ovl-mult)))',
+            boxShadow: 'var(--c-card-shadow)',
             clipPath: 'polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%)',
           }}>
           {/* Top accent */}
@@ -153,12 +155,12 @@ export function AdminDashboardPage() {
                     <stop offset="95%" stopColor="#E11919" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-                <XAxis dataKey="week" tick={{ fill: '#9BA3A7', fontSize: 10 }} tickLine={false} axisLine={false} />
-                <YAxis domain={[0, 100]} tick={{ fill: '#9BA3A7', fontSize: 10 }} tickLine={false} axisLine={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgb(var(--c-overlay) / calc(0.04 * var(--c-ovl-mult)))" />
+                <XAxis dataKey="week" tick={{ fill: 'rgb(var(--c-text-secondary))', fontSize: 10 }} tickLine={false} axisLine={false} />
+                <YAxis domain={[0, 100]} tick={{ fill: 'rgb(var(--c-text-secondary))', fontSize: 10 }} tickLine={false} axisLine={false} />
                 <Tooltip
-                  contentStyle={{ background: '#0D0D0D', border: '1px solid rgba(225,25,25,0.2)', borderRadius: 0, fontSize: 12 }}
-                  labelStyle={{ color: '#9BA3A7', fontSize: 11, letterSpacing: '0.1em' }}
+                  contentStyle={{ background: 'rgb(var(--c-bg-elevated))', border: '1px solid rgba(225,25,25,0.2)', borderRadius: 0, fontSize: 12 }}
+                  labelStyle={{ color: 'rgb(var(--c-text-secondary))', fontSize: 11, letterSpacing: '0.1em' }}
                   itemStyle={{ color: '#E11919' }}
                   cursor={{ stroke: 'rgba(225,25,25,0.2)', strokeWidth: 1 }}
                 />
@@ -174,8 +176,9 @@ export function AdminDashboardPage() {
         {/* Level distribution */}
         <div className="relative overflow-hidden"
           style={{
-            background: 'linear-gradient(145deg, #0d0d0d 0%, #080808 100%)',
-            border: '1px solid rgba(255,255,255,0.05)',
+            background: 'linear-gradient(145deg, rgb(var(--c-bg-elevated)) 0%, rgb(var(--c-bg-input)) 100%)',
+            border: '1px solid rgb(var(--c-overlay) / calc(0.05 * var(--c-ovl-mult)))',
+            boxShadow: 'var(--c-card-shadow)',
             clipPath: 'polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%)',
           }}>
           <div className="absolute top-0 left-0 right-0 h-px"
@@ -192,13 +195,13 @@ export function AdminDashboardPage() {
             </div>
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={gradeData} barSize={44} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
-                <XAxis dataKey="name" tick={{ fill: '#9BA3A7', fontSize: 11 }} tickLine={false} axisLine={false} />
-                <YAxis allowDecimals={false} tick={{ fill: '#9BA3A7', fontSize: 10 }} tickLine={false} axisLine={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgb(var(--c-overlay) / calc(0.04 * var(--c-ovl-mult)))" vertical={false} />
+                <XAxis dataKey="name" tick={{ fill: 'rgb(var(--c-text-secondary))', fontSize: 11 }} tickLine={false} axisLine={false} />
+                <YAxis allowDecimals={false} tick={{ fill: 'rgb(var(--c-text-secondary))', fontSize: 10 }} tickLine={false} axisLine={false} />
                 <Tooltip
-                  contentStyle={{ background: '#0D0D0D', border: '1px solid rgba(225,25,25,0.2)', borderRadius: 0, fontSize: 12 }}
-                  labelStyle={{ color: '#9BA3A7', fontSize: 11 }}
-                  cursor={{ fill: 'rgba(255,255,255,0.025)' }}
+                  contentStyle={{ background: 'rgb(var(--c-bg-elevated))', border: '1px solid rgba(225,25,25,0.2)', borderRadius: 0, fontSize: 12 }}
+                  labelStyle={{ color: 'rgb(var(--c-text-secondary))', fontSize: 11 }}
+                  cursor={{ fill: 'rgb(var(--c-overlay) / calc(0.025 * var(--c-ovl-mult)))' }}
                 />
                 <Bar dataKey="value" name="Students" radius={[2, 2, 0, 0]}>
                   {gradeData.map((entry, i) => (
@@ -213,7 +216,7 @@ export function AdminDashboardPage() {
               {gradeData.map(({ name, fill }) => (
                 <div key={name} className="flex items-center gap-1.5">
                   <div className="w-2 h-2 rounded-sm" style={{ background: fill }} />
-                  <span style={{ color: 'rgba(155,163,167,0.5)', fontSize: '0.58rem', letterSpacing: '0.18em', textTransform: 'uppercase' }}>{name}</span>
+                  <span style={{ color: 'rgb(var(--c-text-secondary) / calc(0.5 * var(--c-sec-mult)))', fontSize: '0.58rem', letterSpacing: '0.18em', textTransform: 'uppercase' }}>{name}</span>
                 </div>
               ))}
             </div>

@@ -12,17 +12,17 @@ import { CardSkeleton } from '../../components/ui/LoadingSkeleton'
 import { Target, TrendingUp, BarChart2, Award, BarChart as BarChartIcon } from 'lucide-react'
 
 const C = {
-  tooltip: { background: '#0D0D0D', border: '1px solid rgba(225,25,25,0.2)', borderRadius: 0, fontSize: 12 },
-  label:   { color: '#9BA3A7', fontSize: 11 },
+  tooltip: { background: 'rgb(var(--c-bg-elevated))', border: '1px solid rgba(225,25,25,0.2)', borderRadius: 0, fontSize: 12 },
+  label:   { color: 'rgb(var(--c-text-secondary))', fontSize: 11 },
   item:    { color: '#E11919' },
-  tick:    { fill: '#9BA3A7', fontSize: 10 },
-  grid:    'rgba(255,255,255,0.04)',
+  tick:    { fill: 'rgb(var(--c-text-secondary))', fontSize: 10 },
+  grid:    'rgb(var(--c-overlay) / calc(0.04 * var(--c-ovl-mult)))',
 }
 
 const LEVEL_COLORS: Record<string, string> = {
-  beginner: '#10b981', intermediate: '#f59e0b', advanced: '#E11919',
+  beginner: 'var(--c-chart-green)', intermediate: 'var(--c-chart-amber)', advanced: '#E11919',
 }
-const PILLAR_COLORS = ['#E11919', '#f59e0b', '#10b981', '#3b82f6', '#a855f7']
+const PILLAR_COLORS = ['#E11919', 'var(--c-chart-amber)', 'var(--c-chart-green)', 'var(--c-chart-blue)', 'var(--c-chart-purple)']
 
 type Tab = 'overview' | 'sports' | 'pillars' | 'performers'
 
@@ -31,8 +31,8 @@ function Card({ children, span2 = false }: { children: React.ReactNode; span2?: 
   return (
     <div className={`relative overflow-hidden ${span2 ? 'xl:col-span-2' : ''}`}
       style={{
-        background: 'linear-gradient(145deg, #0d0d0d 0%, #080808 100%)',
-        border: '1px solid rgba(255,255,255,0.05)',
+        background: 'linear-gradient(145deg, rgb(var(--c-bg-elevated)) 0%, rgb(var(--c-bg-input)) 100%)',
+        border: '1px solid rgb(var(--c-overlay) / calc(0.05 * var(--c-ovl-mult)))',
         clipPath: 'polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%)',
       }}>
       <div className="absolute top-0 left-0 right-0 h-px"
@@ -100,15 +100,15 @@ export function AnalyticsPage() {
       {/* ── Header ─────────────────────────────────────────── */}
       <div className="flex items-end justify-between gap-4 flex-wrap">
         <div>
-          <p style={{ color: 'rgba(225,25,25,0.6)', fontSize: '0.58rem', letterSpacing: '0.4em', textTransform: 'uppercase', marginBottom: 6 }}>
-            Academy Performance
+          <p style={{ color: 'rgba(225,25,25,var(--c-eyebrow-a))', fontSize: '0.58rem', letterSpacing: '0.4em', textTransform: 'uppercase', marginBottom: 6 }}>
+            Performance
           </p>
           <h1 className="font-display text-off-white" style={{ fontSize: '2.4rem', letterSpacing: '0.1em', lineHeight: 1 }}>
             Analytics
           </h1>
           <div className="mt-2 flex items-center gap-3">
             <div className="h-[2px] w-10 bg-blood-red" />
-            <span style={{ color: 'rgba(155,163,167,0.38)', fontSize: '0.58rem', letterSpacing: '0.28em', textTransform: 'uppercase' }}>
+            <span style={{ color: 'rgb(var(--c-text-secondary) / calc(0.38 * var(--c-sec-mult)))', fontSize: '0.58rem', letterSpacing: '0.28em', textTransform: 'uppercase' }}>
               {dateStr}
             </span>
           </div>
@@ -120,8 +120,8 @@ export function AnalyticsPage() {
             value={sportFilter}
             onChange={e => setSportFilter(e.target.value)}
             style={{
-              background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.08)',
-              color: '#9BA3A7', padding: '7px 14px', fontSize: '0.65rem',
+              background: 'rgb(var(--c-bg-surface))', border: '1px solid rgb(var(--c-overlay) / calc(0.08 * var(--c-ovl-mult)))',
+              color: 'rgb(var(--c-text-secondary))', padding: '7px 14px', fontSize: '0.65rem',
               letterSpacing: '0.18em', textTransform: 'uppercase', outline: 'none',
               cursor: 'pointer',
             }}
@@ -134,7 +134,7 @@ export function AnalyticsPage() {
       </div>
 
       {/* ── Tab nav ────────────────────────────────────────── */}
-      <div style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }} className="flex gap-0">
+      <div style={{ borderBottom: '1px solid rgb(var(--c-overlay) / calc(0.05 * var(--c-ovl-mult)))' }} className="flex gap-0">
         {tabs.map(t => (
           <button
             key={t.key}
@@ -145,7 +145,7 @@ export function AnalyticsPage() {
               letterSpacing: '0.22em',
               textTransform: 'uppercase',
               borderBottom: tab === t.key ? '2px solid #E11919' : '2px solid transparent',
-              color: tab === t.key ? '#F5F5F5' : 'rgba(155,163,167,0.5)',
+              color: tab === t.key ? 'rgb(var(--c-text-primary))' : 'rgb(var(--c-text-secondary) / calc(0.5 * var(--c-sec-mult)))',
               background: 'none',
               cursor: 'pointer',
               transition: 'color 0.2s ease, border-color 0.2s ease',
@@ -206,7 +206,7 @@ export function AnalyticsPage() {
                   <CartesianGrid strokeDasharray="3 3" stroke={C.grid} vertical={false} />
                   <XAxis dataKey="week" tick={C.tick} tickLine={false} axisLine={false} />
                   <YAxis allowDecimals={false} tick={C.tick} tickLine={false} axisLine={false} />
-                  <Tooltip contentStyle={C.tooltip} labelStyle={C.label} cursor={{ fill: 'rgba(255,255,255,0.025)' }} />
+                  <Tooltip contentStyle={C.tooltip} labelStyle={C.label} cursor={{ fill: 'rgb(var(--c-overlay) / calc(0.025 * var(--c-ovl-mult)))' }} />
                   <Bar dataKey="assessment_count" name="Sessions" fill="#E11919" fillOpacity={0.8} radius={[2, 2, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -219,7 +219,7 @@ export function AnalyticsPage() {
                   <CartesianGrid strokeDasharray="3 3" stroke={C.grid} vertical={false} />
                   <XAxis dataKey="range" tick={C.tick} tickLine={false} axisLine={false} />
                   <YAxis allowDecimals={false} tick={C.tick} tickLine={false} axisLine={false} />
-                  <Tooltip contentStyle={C.tooltip} labelStyle={C.label} cursor={{ fill: 'rgba(255,255,255,0.025)' }} />
+                  <Tooltip contentStyle={C.tooltip} labelStyle={C.label} cursor={{ fill: 'rgb(var(--c-overlay) / calc(0.025 * var(--c-ovl-mult)))' }} />
                   <Bar dataKey="count" name="Students" radius={[2, 2, 0, 0]}>
                     {scoreDistData.map((_: any, i: number) => (
                       <Cell key={i} fill={PILLAR_COLORS[i % PILLAR_COLORS.length]} fillOpacity={0.85} />
@@ -235,8 +235,8 @@ export function AnalyticsPage() {
                 <PieChart>
                   <Pie
                     data={[
-                      { name: 'Beginner',     value: d?.grade_distribution?.beginner     ?? 0, fill: '#10b981' },
-                      { name: 'Intermediate', value: d?.grade_distribution?.intermediate ?? 0, fill: '#f59e0b' },
+                      { name: 'Beginner',     value: d?.grade_distribution?.beginner     ?? 0, fill: 'var(--c-chart-green)' },
+                      { name: 'Intermediate', value: d?.grade_distribution?.intermediate ?? 0, fill: 'var(--c-chart-amber)' },
                       { name: 'Advanced',     value: d?.grade_distribution?.advanced     ?? 0, fill: '#E11919' },
                     ]}
                     dataKey="value" nameKey="name"
@@ -244,17 +244,17 @@ export function AnalyticsPage() {
                     strokeWidth={0}
                   >
                     {[
-                      { fill: '#10b981' }, { fill: '#f59e0b' }, { fill: '#E11919' },
+                      { fill: 'var(--c-chart-green)' }, { fill: 'var(--c-chart-amber)' }, { fill: '#E11919' },
                     ].map((e, i) => <Cell key={i} fill={e.fill} />)}
                   </Pie>
                   <Tooltip contentStyle={C.tooltip} />
                 </PieChart>
               </ResponsiveContainer>
               <div className="flex items-center gap-5 mt-2 justify-center">
-                {[['Beginner','#10b981'],['Intermediate','#f59e0b'],['Advanced','#E11919']].map(([name, color]) => (
+                {[['Beginner','var(--c-chart-green)'],['Intermediate','var(--c-chart-amber)'],['Advanced','#E11919']].map(([name, color]) => (
                   <div key={name} className="flex items-center gap-1.5">
                     <div className="w-2 h-2 rounded-sm" style={{ background: color }} />
-                    <span style={{ color: 'rgba(155,163,167,0.5)', fontSize: '0.58rem', letterSpacing: '0.18em', textTransform: 'uppercase' }}>{name}</span>
+                    <span style={{ color: 'rgb(var(--c-text-secondary) / calc(0.5 * var(--c-sec-mult)))', fontSize: '0.58rem', letterSpacing: '0.18em', textTransform: 'uppercase' }}>{name}</span>
                   </div>
                 ))}
               </div>
@@ -274,16 +274,16 @@ export function AnalyticsPage() {
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {sports.map((s: any) => {
-                  const accent = s.sport === 'boxing' ? '#3b82f6' : '#a855f7'
+                  const accent = s.sport === 'boxing' ? 'var(--c-chart-blue)' : 'var(--c-chart-purple)'
                   return (
                     <div key={s.sport} className="relative overflow-hidden"
                       style={{
-                        background: 'linear-gradient(145deg, #0d0d0d 0%, #080808 100%)',
-                        border: '1px solid rgba(255,255,255,0.05)',
+                        background: 'linear-gradient(145deg, rgb(var(--c-bg-elevated)) 0%, rgb(var(--c-bg-input)) 100%)',
+                        border: '1px solid rgb(var(--c-overlay) / calc(0.05 * var(--c-ovl-mult)))',
                         clipPath: 'polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%)',
                       }}>
                       <div className="absolute top-0 left-0 right-0 h-px"
-                        style={{ background: `linear-gradient(to right, ${accent}, rgba(255,255,255,0.04) 50%, transparent)` }} />
+                        style={{ background: `linear-gradient(to right, ${accent}, rgb(var(--c-overlay) / calc(0.04 * var(--c-ovl-mult))) 50%, transparent)` }} />
                       <div className="absolute top-0 left-0 bottom-0 w-[3px]"
                         style={{ background: `linear-gradient(to bottom, ${accent}, transparent 70%)` }} />
                       <div className="p-6 space-y-5">
@@ -299,9 +299,9 @@ export function AnalyticsPage() {
                             { label: 'Sessions', value: s.total_sessions },
                           ].map(c => (
                             <div key={c.label} className="text-center py-3"
-                              style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                              style={{ background: 'rgb(var(--c-overlay) / calc(0.03 * var(--c-ovl-mult)))', border: '1px solid rgb(var(--c-overlay) / calc(0.05 * var(--c-ovl-mult)))' }}>
                               <p className="font-display text-off-white text-xl">{c.value}</p>
-                              <p style={{ color: 'rgba(155,163,167,0.45)', fontSize: '0.5rem', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: 3 }}>{c.label}</p>
+                              <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.45 * var(--c-sec-mult)))', fontSize: '0.5rem', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: 3 }}>{c.label}</p>
                             </div>
                           ))}
                         </div>
@@ -314,19 +314,19 @@ export function AnalyticsPage() {
                           ].map(c => (
                             <div key={c.label}>
                               <p className="font-display text-off-white text-lg">{c.value}</p>
-                              <p style={{ color: 'rgba(155,163,167,0.4)', fontSize: '0.5rem', letterSpacing: '0.2em', textTransform: 'uppercase' }}>{c.label}</p>
+                              <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.4 * var(--c-sec-mult)))', fontSize: '0.5rem', letterSpacing: '0.2em', textTransform: 'uppercase' }}>{c.label}</p>
                             </div>
                           ))}
                         </div>
 
-                        <div className="space-y-2.5 pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                        <div className="space-y-2.5 pt-3" style={{ borderTop: '1px solid rgb(var(--c-overlay) / calc(0.05 * var(--c-ovl-mult)))' }}>
                           {['beginner', 'intermediate', 'advanced'].map(lvl => {
                             const count = s.level_distribution?.[lvl] ?? 0
                             const pct = s.total_students > 0 ? (count / s.total_students) * 100 : 0
                             return (
                               <div key={lvl} className="flex items-center gap-3">
-                                <span style={{ color: 'rgba(155,163,167,0.45)', fontSize: '0.55rem', letterSpacing: '0.18em', textTransform: 'uppercase', width: 80 }}>{lvl}</span>
-                                <div className="flex-1 h-1 overflow-hidden" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                                <span style={{ color: 'rgb(var(--c-text-secondary) / calc(0.45 * var(--c-sec-mult)))', fontSize: '0.55rem', letterSpacing: '0.18em', textTransform: 'uppercase', width: 80 }}>{lvl}</span>
+                                <div className="flex-1 h-1 overflow-hidden" style={{ background: 'rgb(var(--c-overlay) / calc(0.05 * var(--c-ovl-mult)))' }}>
                                   <div className="h-full transition-all duration-700"
                                     style={{ width: `${pct}%`, background: LEVEL_COLORS[lvl] }} />
                                 </div>
@@ -354,16 +354,16 @@ export function AnalyticsPage() {
                     <CartesianGrid strokeDasharray="3 3" stroke={C.grid} vertical={false} />
                     <XAxis dataKey="metric" tick={C.tick} tickLine={false} axisLine={false} />
                     <YAxis domain={[0, 100]} tick={C.tick} tickLine={false} axisLine={false} />
-                    <Tooltip contentStyle={C.tooltip} labelStyle={C.label} cursor={{ fill: 'rgba(255,255,255,0.025)' }} />
-                    <Bar dataKey="boxing"    name="Boxing"    fill="#3b82f6" fillOpacity={0.85} radius={[2,2,0,0]} />
-                    <Bar dataKey="kickboxing" name="Kickboxing" fill="#a855f7" fillOpacity={0.85} radius={[2,2,0,0]} />
+                    <Tooltip contentStyle={C.tooltip} labelStyle={C.label} cursor={{ fill: 'rgb(var(--c-overlay) / calc(0.025 * var(--c-ovl-mult)))' }} />
+                    <Bar dataKey="boxing"    name="Boxing"    fill="var(--c-chart-blue)" fillOpacity={0.85} radius={[2,2,0,0]} />
+                    <Bar dataKey="kickboxing" name="Kickboxing" fill="var(--c-chart-purple)" fillOpacity={0.85} radius={[2,2,0,0]} />
                   </BarChart>
                 </ResponsiveContainer>
                 <div className="flex items-center gap-5 mt-4 justify-center">
-                  {[['Boxing','#3b82f6'],['Kickboxing','#a855f7']].map(([name,color]) => (
+                  {[['Boxing','var(--c-chart-blue)'],['Kickboxing','var(--c-chart-purple)']].map(([name,color]) => (
                     <div key={name} className="flex items-center gap-1.5">
                       <div className="w-2 h-2 rounded-sm" style={{ background: color }} />
-                      <span style={{ color: 'rgba(155,163,167,0.5)', fontSize: '0.58rem', letterSpacing: '0.18em', textTransform: 'uppercase' }}>{name}</span>
+                      <span style={{ color: 'rgb(var(--c-text-secondary) / calc(0.5 * var(--c-sec-mult)))', fontSize: '0.58rem', letterSpacing: '0.18em', textTransform: 'uppercase' }}>{name}</span>
                     </div>
                   ))}
                 </div>
@@ -382,7 +382,7 @@ export function AnalyticsPage() {
             <div className="grid grid-cols-2 gap-4">{Array.from({ length: 4 }).map((_, i) => <CardSkeleton key={i} />)}</div>
           ) : pillarData.length === 0 ? (
             <div className="relative overflow-hidden text-center py-16"
-              style={{ background: 'linear-gradient(145deg,#0d0d0d,#080808)', border: '1px solid rgba(255,255,255,0.05)' }}>
+              style={{ background: 'linear-gradient(145deg,rgb(var(--c-bg-elevated)),rgb(var(--c-bg-input)))', border: '1px solid rgb(var(--c-overlay) / calc(0.05 * var(--c-ovl-mult)))' }}>
               <p className="text-steel-gray/50 text-sm">No pillar data yet — sync assessments first.</p>
             </div>
           ) : (
@@ -394,7 +394,7 @@ export function AnalyticsPage() {
                     <CartesianGrid strokeDasharray="3 3" stroke={C.grid} horizontal={false} />
                     <XAxis type="number" domain={[0, 100]} tick={C.tick} tickLine={false} axisLine={false} />
                     <YAxis dataKey="pillar" type="category" tick={{ ...C.tick, fontSize: 11 }} tickLine={false} axisLine={false} width={110} />
-                    <Tooltip contentStyle={C.tooltip} labelStyle={C.label} cursor={{ fill: 'rgba(255,255,255,0.025)' }} />
+                    <Tooltip contentStyle={C.tooltip} labelStyle={C.label} cursor={{ fill: 'rgb(var(--c-overlay) / calc(0.025 * var(--c-ovl-mult)))' }} />
                     <Bar dataKey="average" name="Avg Score" radius={[0, 2, 2, 0]}>
                       {pillarData.map((_: any, i: number) => (
                         <Cell key={i} fill={PILLAR_COLORS[i % PILLAR_COLORS.length]} fillOpacity={0.85} />
@@ -409,9 +409,9 @@ export function AnalyticsPage() {
                   <CardTitle title="Pillar Radar" />
                   <ResponsiveContainer width="100%" height={260}>
                     <RadarChart data={pillarData.map((p: any) => ({ ...p, pillar: p.pillar.replace('Physical ', '').replace(' Skills', '') }))}>
-                      <PolarGrid stroke="rgba(255,255,255,0.08)" />
-                      <PolarAngleAxis dataKey="pillar" tick={{ fill: '#9BA3A7', fontSize: 10 }} />
-                      <PolarRadiusAxis domain={[0, 100]} tick={{ fill: '#9BA3A7', fontSize: 8 }} />
+                      <PolarGrid stroke="rgb(var(--c-overlay) / calc(0.08 * var(--c-ovl-mult)))" />
+                      <PolarAngleAxis dataKey="pillar" tick={{ fill: 'rgb(var(--c-text-secondary))', fontSize: 10 }} />
+                      <PolarRadiusAxis domain={[0, 100]} tick={{ fill: 'rgb(var(--c-text-secondary))', fontSize: 8 }} />
                       <Radar name="Avg" dataKey="average" stroke="#E11919" fill="#E11919" fillOpacity={0.18} />
                     </RadarChart>
                   </ResponsiveContainer>
@@ -421,10 +421,10 @@ export function AnalyticsPage() {
                   <CardTitle title="Pillar Detail" />
                   <table className="w-full">
                     <thead>
-                      <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                      <tr style={{ borderBottom: '1px solid rgb(var(--c-overlay) / calc(0.05 * var(--c-ovl-mult)))' }}>
                         {['Pillar','Avg','High','Low'].map(h => (
                           <th key={h} className={h === 'Pillar' ? 'text-left' : 'text-right'}
-                            style={{ padding: '6px 8px 6px 0', color: 'rgba(155,163,167,0.4)', fontSize: '0.52rem', letterSpacing: '0.22em', textTransform: 'uppercase' }}>
+                            style={{ padding: '6px 8px 6px 0', color: 'rgb(var(--c-text-secondary) / calc(0.4 * var(--c-sec-mult)))', fontSize: '0.52rem', letterSpacing: '0.22em', textTransform: 'uppercase' }}>
                             {h}
                           </th>
                         ))}
@@ -432,7 +432,7 @@ export function AnalyticsPage() {
                     </thead>
                     <tbody>
                       {pillarData.map((p: any, i: number) => (
-                        <tr key={p.pillar} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                        <tr key={p.pillar} style={{ borderBottom: '1px solid rgb(var(--c-overlay) / calc(0.04 * var(--c-ovl-mult)))' }}>
                           <td style={{ padding: '8px 8px 8px 0' }}>
                             <div className="flex items-center gap-2">
                               <div className="w-2 h-2 rounded-sm shrink-0" style={{ background: PILLAR_COLORS[i % PILLAR_COLORS.length] }} />
@@ -459,7 +459,7 @@ export function AnalyticsPage() {
       {tab === 'performers' && (
         <div className="space-y-6">
           {loadingTop ? (
-            <div className="space-y-2">{Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-14 bg-white/5 animate-pulse" />)}</div>
+            <div className="space-y-2">{Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-14 bg-overlay/5 animate-pulse" />)}</div>
           ) : (
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
 
@@ -470,10 +470,10 @@ export function AnalyticsPage() {
                 ) : (
                   <table className="w-full">
                     <thead>
-                      <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                      <tr style={{ borderBottom: '1px solid rgb(var(--c-overlay) / calc(0.05 * var(--c-ovl-mult)))' }}>
                         {['#','Student','Score','+Δ'].map(h => (
                           <th key={h} className={h === '#' || h === 'Student' ? 'text-left' : 'text-right'}
-                            style={{ padding: '6px 8px 6px 0', color: 'rgba(155,163,167,0.4)', fontSize: '0.52rem', letterSpacing: '0.22em', textTransform: 'uppercase' }}>
+                            style={{ padding: '6px 8px 6px 0', color: 'rgb(var(--c-text-secondary) / calc(0.4 * var(--c-sec-mult)))', fontSize: '0.52rem', letterSpacing: '0.22em', textTransform: 'uppercase' }}>
                             {h}
                           </th>
                         ))}
@@ -481,8 +481,8 @@ export function AnalyticsPage() {
                     </thead>
                     <tbody>
                       {((topPerformers as any)?.by_improvement ?? []).map((p: any, i: number) => (
-                        <tr key={p.student_id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                          <td style={{ padding: '10px 8px 10px 0', color: 'rgba(155,163,167,0.3)', fontSize: '0.65rem', fontFamily: 'var(--font-display)' }}>{i + 1}</td>
+                        <tr key={p.student_id} style={{ borderBottom: '1px solid rgb(var(--c-overlay) / calc(0.04 * var(--c-ovl-mult)))' }}>
+                          <td style={{ padding: '10px 8px 10px 0', color: 'rgb(var(--c-text-secondary) / calc(0.3 * var(--c-sec-mult)))', fontSize: '0.65rem', fontFamily: 'var(--font-display)' }}>{i + 1}</td>
                           <td style={{ padding: '10px 8px 10px 0' }}>
                             <p className="text-off-white text-xs">{p.student_name}</p>
                             <Badge variant={p.sport}>{p.sport}</Badge>
@@ -505,10 +505,10 @@ export function AnalyticsPage() {
                 ) : (
                   <table className="w-full">
                     <thead>
-                      <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                      <tr style={{ borderBottom: '1px solid rgb(var(--c-overlay) / calc(0.05 * var(--c-ovl-mult)))' }}>
                         {['#','Student','Level','Score'].map(h => (
                           <th key={h} className={h === '#' || h === 'Student' || h === 'Level' ? 'text-left' : 'text-right'}
-                            style={{ padding: '6px 8px 6px 0', color: 'rgba(155,163,167,0.4)', fontSize: '0.52rem', letterSpacing: '0.22em', textTransform: 'uppercase' }}>
+                            style={{ padding: '6px 8px 6px 0', color: 'rgb(var(--c-text-secondary) / calc(0.4 * var(--c-sec-mult)))', fontSize: '0.52rem', letterSpacing: '0.22em', textTransform: 'uppercase' }}>
                             {h}
                           </th>
                         ))}
@@ -516,11 +516,11 @@ export function AnalyticsPage() {
                     </thead>
                     <tbody>
                       {((topPerformers as any)?.by_score ?? []).map((p: any, i: number) => (
-                        <tr key={p.student_id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                          <td style={{ padding: '10px 8px 10px 0', color: 'rgba(155,163,167,0.3)', fontSize: '0.65rem', fontFamily: 'var(--font-display)' }}>{i + 1}</td>
+                        <tr key={p.student_id} style={{ borderBottom: '1px solid rgb(var(--c-overlay) / calc(0.04 * var(--c-ovl-mult)))' }}>
+                          <td style={{ padding: '10px 8px 10px 0', color: 'rgb(var(--c-text-secondary) / calc(0.3 * var(--c-sec-mult)))', fontSize: '0.65rem', fontFamily: 'var(--font-display)' }}>{i + 1}</td>
                           <td style={{ padding: '10px 8px 10px 0' }}>
                             <p className="text-off-white text-xs">{p.student_name}</p>
-                            <p style={{ color: 'rgba(155,163,167,0.35)', fontSize: '0.55rem', letterSpacing: '0.18em' }}>{p.student_id}</p>
+                            <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.35 * var(--c-sec-mult)))', fontSize: '0.55rem', letterSpacing: '0.18em' }}>{p.student_id}</p>
                           </td>
                           <td style={{ padding: '10px 8px 10px 0' }}>
                             <Badge variant={p.level}>{p.level}</Badge>

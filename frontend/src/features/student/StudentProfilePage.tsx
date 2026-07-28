@@ -6,7 +6,8 @@ import { useAuth } from '../auth/AuthContext'
 import { studentsService } from '../../services/students.service'
 import { authService } from '../../services/auth.service'
 import { Badge } from '../../components/ui/Badge'
-import { Shield, User, Lock } from 'lucide-react'
+import { ThemeToggle } from '../../components/ui/ThemeToggle'
+import { Shield, User, Lock, Palette } from 'lucide-react'
 
 const pwSchema = z.object({
   old_password: z.string().min(1, 'Required'),
@@ -22,8 +23,8 @@ function SectionCard({ icon: Icon, title, children }: {
   return (
     <div className="relative overflow-hidden"
       style={{
-        background: 'linear-gradient(145deg, #0d0d0d 0%, #080808 100%)',
-        border: '1px solid rgba(255,255,255,0.05)',
+        background: 'linear-gradient(145deg, rgb(var(--c-bg-elevated)) 0%, rgb(var(--c-bg-input)) 100%)',
+        border: '1px solid rgb(var(--c-overlay) / calc(0.05 * var(--c-ovl-mult)))',
         clipPath: 'polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%)',
       }}>
       <div className="absolute top-0 left-0 right-0 h-px"
@@ -67,7 +68,7 @@ export function StudentProfilePage() {
 
       {/* Header */}
       <div>
-        <p style={{ color: 'rgba(225,25,25,0.6)', fontSize: '0.58rem', letterSpacing: '0.4em', textTransform: 'uppercase', marginBottom: 6 }}>
+        <p style={{ color: 'rgba(225,25,25,var(--c-eyebrow-a))', fontSize: '0.58rem', letterSpacing: '0.4em', textTransform: 'uppercase', marginBottom: 6 }}>
           Student Portal
         </p>
         <h1 className="font-display text-off-white" style={{ fontSize: '2.4rem', letterSpacing: '0.08em', lineHeight: 1 }}>
@@ -75,7 +76,7 @@ export function StudentProfilePage() {
         </h1>
         <div className="mt-2 flex items-center gap-3">
           <div className="h-[2px] w-10 bg-blood-red" />
-          <span style={{ color: 'rgba(155,163,167,0.38)', fontSize: '0.58rem', letterSpacing: '0.28em', textTransform: 'uppercase' }}>
+          <span style={{ color: 'rgb(var(--c-text-secondary) / calc(0.38 * var(--c-sec-mult)))', fontSize: '0.58rem', letterSpacing: '0.28em', textTransform: 'uppercase' }}>
             Account details &amp; settings
           </span>
         </div>
@@ -84,7 +85,7 @@ export function StudentProfilePage() {
       {/* Identity card */}
       <div className="relative overflow-hidden"
         style={{
-          background: 'linear-gradient(105deg, #0f0606 0%, #0a0303 60%, rgba(225,25,25,0.04) 100%)',
+          background: 'linear-gradient(105deg, rgb(var(--c-accent-wash)) 0%, rgb(var(--c-bg-elevated)) 60%, rgba(225,25,25,0.04) 100%)',
           border: '1px solid rgba(225,25,25,0.15)',
           clipPath: 'polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px))',
         }}>
@@ -110,7 +111,7 @@ export function StudentProfilePage() {
             {myStudent && (
               <div className="flex items-center gap-2 mt-2 flex-wrap">
                 <span className="font-display text-blood-red text-sm">{myStudent.student_id}</span>
-                <span style={{ color: 'rgba(255,255,255,0.1)' }}>·</span>
+                <span style={{ color: 'rgb(var(--c-text-secondary) / calc(0.3 * var(--c-sec-mult)))' }}>·</span>
                 <Badge variant={myStudent.sport}>{myStudent.sport}</Badge>
                 <Badge variant={myStudent.level}>{myStudent.level}</Badge>
               </div>
@@ -130,14 +131,21 @@ export function StudentProfilePage() {
               { label: 'Status', value: myStudent.is_active ? 'Active' : 'Inactive' },
             ].map(({ label, value }) => (
               <div key={label} className="flex items-center justify-between py-2.5"
-                style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                <span style={{ color: 'rgba(155,163,167,0.5)', fontSize: '0.6rem', letterSpacing: '0.24em', textTransform: 'uppercase' }}>{label}</span>
+                style={{ borderBottom: '1px solid rgb(var(--c-overlay) / calc(0.04 * var(--c-ovl-mult)))' }}>
+                <span style={{ color: 'rgb(var(--c-text-secondary) / calc(0.5 * var(--c-sec-mult)))', fontSize: '0.6rem', letterSpacing: '0.24em', textTransform: 'uppercase' }}>{label}</span>
                 <span className="text-off-white text-sm">{value}</span>
               </div>
             ))}
           </div>
         </SectionCard>
       )}
+
+      <SectionCard icon={Palette} title="Appearance">
+        <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.45 * var(--c-sec-mult)))', fontSize: '0.68rem', marginBottom: 14 }}>
+          Choose how the GOAT system looks on this device.
+        </p>
+        <ThemeToggle />
+      </SectionCard>
 
       <SectionCard icon={Lock} title="Change Password">
         <form
@@ -150,20 +158,20 @@ export function StudentProfilePage() {
             { name: 'confirm'      as const, label: 'Confirm New Password' },
           ].map(({ name, label }) => (
             <div key={name}>
-              <label style={{ display: 'block', color: 'rgba(155,163,167,0.5)', fontSize: '0.56rem', letterSpacing: '0.28em', textTransform: 'uppercase', marginBottom: 6 }}>
+              <label style={{ display: 'block', color: 'rgb(var(--c-text-secondary) / calc(0.5 * var(--c-sec-mult)))', fontSize: '0.56rem', letterSpacing: '0.28em', textTransform: 'uppercase', marginBottom: 6 }}>
                 {label}
               </label>
               <input
                 type="password"
                 {...register(name)}
                 style={{
-                  width: '100%', background: '#080808',
-                  border: errors[name] ? '1px solid rgba(225,25,25,0.4)' : '1px solid rgba(255,255,255,0.07)',
-                  color: '#F5F5F5', padding: '10px 14px', fontSize: 14,
+                  width: '100%', background: 'rgb(var(--c-bg-input))',
+                  border: errors[name] ? '1px solid rgba(225,25,25,0.4)' : '1px solid rgb(var(--c-overlay) / calc(0.07 * var(--c-ovl-mult)))',
+                  color: 'rgb(var(--c-text-primary))', padding: '10px 14px', fontSize: 14,
                   outline: 'none', transition: 'border-color 0.2s ease',
                 }}
                 onFocus={e => { e.target.style.borderColor = 'rgba(225,25,25,0.4)' }}
-                onBlur={e => { e.target.style.borderColor = errors[name] ? 'rgba(225,25,25,0.4)' : 'rgba(255,255,255,0.07)' }}
+                onBlur={e => { e.target.style.borderColor = errors[name] ? 'rgba(225,25,25,0.4)' : 'rgb(var(--c-overlay) / calc(0.07 * var(--c-ovl-mult)))' }}
               />
               {errors[name] && (
                 <p style={{ color: '#E11919', fontSize: '0.7rem', marginTop: 4 }}>{errors[name]?.message}</p>

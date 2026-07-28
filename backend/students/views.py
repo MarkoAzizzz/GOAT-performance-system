@@ -7,7 +7,7 @@ from core.responses import success_response, error_response, created_response
 from assessments.models import AssessmentSession, CriterionScore, PillarScore, CoachEntry
 from assessments.services import get_student_progress
 from .models import Branch, Student
-from .serializers import BranchSerializer, StudentSerializer, CreateStudentSerializer, UpdateStudentSerializer
+from .serializers import BranchSerializer, StudentSerializer, CreateStudentSerializer, UpdateStudentSerializer, ResetPasswordSerializer
 from .services import create_student, deactivate_student
 
 
@@ -123,6 +123,25 @@ class StudentHardDeleteView(APIView):
             student.delete()
             user.delete()
         return success_response(message='Student permanently deleted.')
+
+
+class StudentResetPasswordView(APIView):
+    """Admin resets a student's password directly (e.g. when the student forgot it)."""
+    permission_classes = [IsAuthenticated, IsAdmin]
+
+    def post(self, request, pk):
+        try:
+            student = Student.objects.select_related('user').get(pk=pk)
+        except Student.DoesNotExist:
+            return error_response('Student not found.', status_code=404)
+
+        serializer = ResetPasswordSerializer(data=request.data)
+        if not serializer.is_valid():
+            return error_response('Validation failed.', serializer.errors)
+
+        student.user.set_password(serializer.validated_data['new_password'])
+        student.user.save()
+        return success_response(message=f'Password reset for {student.student_id}.')
 
 
 class StudentMeView(APIView):

@@ -26,9 +26,10 @@ export function StatCard({ label, value, sub, accent, trend, icon: Icon }: Props
       className="relative overflow-hidden flex flex-col gap-2 group animate-slide-up"
       style={{
         background: accent
-          ? 'linear-gradient(145deg, #120404 0%, #0c0303 100%)'
-          : 'linear-gradient(145deg, #0d0d0d 0%, #080808 100%)',
-        border: accent ? '1px solid rgba(225,25,25,0.22)' : '1px solid rgba(255,255,255,0.05)',
+          ? 'linear-gradient(145deg, rgb(var(--c-accent-wash)) 0%, rgb(var(--c-bg-elevated)) 100%)'
+          : 'linear-gradient(145deg, rgb(var(--c-bg-elevated)) 0%, rgb(var(--c-bg-input)) 100%)',
+        border: accent ? '1px solid rgb(var(--c-accent-border-rgb) / var(--c-accent-border-a))' : '1px solid rgb(var(--c-overlay) / calc(0.05 * var(--c-ovl-mult)))',
+        boxShadow: 'var(--c-card-shadow)',
         clipPath: 'polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px))',
         padding: '18px 18px 16px',
         transition: 'border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease',
@@ -58,7 +59,7 @@ export function StatCard({ label, value, sub, accent, trend, icon: Icon }: Props
       {/* Icon + label row */}
       <div className="flex items-center justify-between">
         <p style={{
-          color: 'rgba(155,163,167,0.45)',
+          color: 'rgb(var(--c-text-secondary) / calc(0.45 * var(--c-sec-mult)))',
           fontSize: '0.56rem',
           letterSpacing: '0.28em',
           textTransform: 'uppercase',
@@ -85,7 +86,7 @@ export function StatCard({ label, value, sub, accent, trend, icon: Icon }: Props
 
       {/* Sub label */}
       {sub && (
-        <p style={{ color: 'rgba(155,163,167,0.3)', fontSize: '0.56rem', letterSpacing: '0.2em', textTransform: 'uppercase' }}>
+        <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.3 * var(--c-sec-mult)))', fontSize: '0.56rem', letterSpacing: '0.2em', textTransform: 'uppercase' }}>
           {sub}
         </p>
       )}

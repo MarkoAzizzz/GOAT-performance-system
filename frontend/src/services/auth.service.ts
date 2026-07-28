@@ -9,10 +9,23 @@ interface ChangePasswordPayload {
   new_password_confirm: string
 }
 
+// The API returns snake_case fields; map them onto the frontend's camelCase User shape.
+function mapUser(raw: any): User {
+  return {
+    id: raw.id,
+    email: raw.email,
+    fullName: raw.full_name,
+    role: raw.role,
+    isActive: raw.is_active,
+    lastLogin: raw.last_login,
+    createdAt: raw.created_at,
+  }
+}
+
 export const authService = {
   async login(payload: LoginPayload): Promise<LoginData> {
-    const { data } = await api.post<ApiResponse<LoginData>>('/auth/login/', payload)
-    return data.data
+    const { data } = await api.post<ApiResponse<any>>('/auth/login/', payload)
+    return { access: data.data.access, refresh: data.data.refresh, user: mapUser(data.data.user) }
   },
 
   async logout(refreshToken: string): Promise<void> {
@@ -20,15 +33,15 @@ export const authService = {
   },
 
   async getMe(): Promise<User> {
-    const { data } = await api.get<ApiResponse<User>>('/auth/me/')
-    return data.data
+    const { data } = await api.get<ApiResponse<any>>('/auth/me/')
+    return mapUser(data.data)
   },
 
   async updateMe(payload: Partial<Pick<User, 'fullName'>>): Promise<User> {
-    const { data } = await api.patch<ApiResponse<User>>('/auth/me/', {
+    const { data } = await api.patch<ApiResponse<any>>('/auth/me/', {
       full_name: payload.fullName,
     })
-    return data.data
+    return mapUser(data.data)
   },
 
   async changePassword(payload: ChangePasswordPayload): Promise<void> {

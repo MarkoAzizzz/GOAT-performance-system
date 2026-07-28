@@ -40,6 +40,7 @@ LOCAL_APPS = [
     'analytics',
     'google_sync',
     'leaderboard',
+    'chat',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -144,7 +145,7 @@ SIMPLE_JWT = {
 
 SPECTACULAR_SETTINGS = {
     'TITLE': 'GOAT Management System API',
-    'DESCRIPTION': 'Student Performance Management for GOAT Martial Arts Academy',
+    'DESCRIPTION': 'Student Performance Management for GOAT Martial Arts',
     'VERSION': '1.0.0',
 }
 
@@ -161,6 +162,8 @@ CORS_ALLOW_CREDENTIALS = True
 GOOGLE_SHEETS_CREDENTIALS_FILE = BASE_DIR / env('GOOGLE_SHEETS_CREDENTIALS_FILE')
 GOOGLE_SPREADSHEET_ID = env('GOOGLE_SPREADSHEET_ID', default='')
 SYNC_INTERVAL_MINUTES = env.int('SYNC_INTERVAL_MINUTES', default=15)
+
+GROQ_API_KEY = env('GROQ_API_KEY', default='')
 
 LOGGING = {
     'version': 1,

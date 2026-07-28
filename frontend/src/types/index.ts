@@ -8,6 +8,9 @@ export interface User {
   email: string
   fullName: string
   role: Role
+  isActive?: boolean
+  lastLogin?: string | null
+  createdAt?: string
 }
 
 export interface Student {
@@ -62,13 +65,27 @@ export interface LeaderboardEntry {
 }
 
 export interface AnalyticsSummary {
-  totalStudents: number
-  activeStudents: number
-  weeklyAssessments: number
-  averageScore: number
-  highestScore: number
-  lowestScore: number
-  biggestImprovement: number
+  total_students: number
+  active_students: number
+  weekly_assessments: number
+  average_score: number
+  highest_score: number
+  lowest_score: number
+  biggest_improvement: {
+    student_name: string | null
+    student_id: string | null
+    improvement: number | null
+  }
+  grade_distribution: {
+    beginner?: number
+    intermediate?: number
+    advanced?: number
+  }
+  weekly_trend: {
+    week: string
+    average_score: number
+    assessment_count: number
+  }[]
 }
 
 export interface ApiResponse<T> {

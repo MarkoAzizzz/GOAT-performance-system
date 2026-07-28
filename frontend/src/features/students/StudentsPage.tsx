@@ -22,16 +22,16 @@ const createSchema = z.object({
 type CreateForm = z.infer<typeof createSchema>
 
 const inputStyle = {
-  width: '100%', background: '#080808',
-  border: '1px solid rgba(255,255,255,0.07)',
-  color: '#F5F5F5', padding: '10px 14px', fontSize: 13,
+  width: '100%', background: 'rgb(var(--c-bg-input))',
+  border: '1px solid rgb(var(--c-overlay) / calc(0.07 * var(--c-ovl-mult)))',
+  color: 'rgb(var(--c-text-primary))', padding: '10px 14px', fontSize: 13,
   outline: 'none',
 } as const
 
 const filterStyle = {
-  background: '#0a0a0a',
-  border: '1px solid rgba(255,255,255,0.07)',
-  color: '#9BA3A7', padding: '8px 14px', fontSize: '0.65rem',
+  background: 'rgb(var(--c-bg-surface))',
+  border: '1px solid rgb(var(--c-overlay) / calc(0.07 * var(--c-ovl-mult)))',
+  color: 'rgb(var(--c-text-secondary))', padding: '8px 14px', fontSize: '0.65rem',
   letterSpacing: '0.18em', textTransform: 'uppercase' as const,
   outline: 'none', cursor: 'pointer',
 }
@@ -74,15 +74,15 @@ export function StudentsPage() {
       {/* Header */}
       <div className="flex items-end justify-between gap-4 flex-wrap">
         <div>
-          <p style={{ color: 'rgba(225,25,25,0.6)', fontSize: '0.58rem', letterSpacing: '0.4em', textTransform: 'uppercase', marginBottom: 6 }}>
-            Academy Management
+          <p style={{ color: 'rgba(225,25,25,var(--c-eyebrow-a))', fontSize: '0.58rem', letterSpacing: '0.4em', textTransform: 'uppercase', marginBottom: 6 }}>
+            Management
           </p>
           <h1 className="font-display text-off-white" style={{ fontSize: '2.4rem', letterSpacing: '0.1em', lineHeight: 1 }}>
             Students
           </h1>
           <div className="mt-2 flex items-center gap-3">
             <div className="h-[2px] w-10 bg-blood-red" />
-            <span style={{ color: 'rgba(155,163,167,0.38)', fontSize: '0.58rem', letterSpacing: '0.28em', textTransform: 'uppercase' }}>
+            <span style={{ color: 'rgb(var(--c-text-secondary) / calc(0.38 * var(--c-sec-mult)))', fontSize: '0.58rem', letterSpacing: '0.28em', textTransform: 'uppercase' }}>
               {Array.isArray(students) ? students.length : 0} registered
             </span>
           </div>
@@ -105,16 +105,16 @@ export function StudentsPage() {
             placeholder="Search name or ID..."
             style={{ ...filterStyle, paddingLeft: 36, width: '100%' }}
             onFocus={e => { e.target.style.borderColor = 'rgba(225,25,25,0.4)' }}
-            onBlur={e =>  { e.target.style.borderColor = 'rgba(255,255,255,0.07)' }}
+            onBlur={e =>  { e.target.style.borderColor = 'rgb(var(--c-overlay) / calc(0.07 * var(--c-ovl-mult)))' }}
           />
         </div>
         {(['', 'boxing', 'kickboxing'] as const).map(v => (
           <button key={v} onClick={() => setSport(v as Sport | '')}
             style={{
               ...filterStyle,
-              color: sport === v ? '#F5F5F5' : 'rgba(155,163,167,0.5)',
-              borderColor: sport === v ? 'rgba(225,25,25,0.4)' : 'rgba(255,255,255,0.07)',
-              background: sport === v ? 'rgba(225,25,25,0.08)' : '#0a0a0a',
+              color: sport === v ? 'rgb(var(--c-text-primary))' : 'rgb(var(--c-text-secondary) / calc(0.5 * var(--c-sec-mult)))',
+              borderColor: sport === v ? 'rgba(225,25,25,0.4)' : 'rgb(var(--c-overlay) / calc(0.07 * var(--c-ovl-mult)))',
+              background: sport === v ? 'rgba(225,25,25,0.08)' : 'rgb(var(--c-bg-surface))',
             }}>
             {v || 'All Sports'}
           </button>
@@ -123,9 +123,9 @@ export function StudentsPage() {
           <button key={v} onClick={() => setLevel(v as Level | '')}
             style={{
               ...filterStyle,
-              color: level === v ? '#F5F5F5' : 'rgba(155,163,167,0.5)',
-              borderColor: level === v ? 'rgba(225,25,25,0.4)' : 'rgba(255,255,255,0.07)',
-              background: level === v ? 'rgba(225,25,25,0.08)' : '#0a0a0a',
+              color: level === v ? 'rgb(var(--c-text-primary))' : 'rgb(var(--c-text-secondary) / calc(0.5 * var(--c-sec-mult)))',
+              borderColor: level === v ? 'rgba(225,25,25,0.4)' : 'rgb(var(--c-overlay) / calc(0.07 * var(--c-ovl-mult)))',
+              background: level === v ? 'rgba(225,25,25,0.08)' : 'rgb(var(--c-bg-surface))',
             }}>
             {v || 'All Levels'}
           </button>
@@ -137,9 +137,9 @@ export function StudentsPage() {
         <LoadingSkeleton rows={6} />
       ) : !Array.isArray(students) || students.length === 0 ? (
         <div className="relative overflow-hidden text-center py-20"
-          style={{ background: 'linear-gradient(145deg,#0d0d0d,#080808)', border: '1px solid rgba(255,255,255,0.05)', clipPath: 'polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,0 100%)' }}>
+          style={{ background: 'linear-gradient(145deg,rgb(var(--c-bg-elevated)),rgb(var(--c-bg-input)))', border: '1px solid rgb(var(--c-overlay) / calc(0.05 * var(--c-ovl-mult)))', clipPath: 'polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,0 100%)' }}>
           <div className="absolute top-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(to right,#E11919,rgba(225,25,25,0.2) 50%,transparent)' }} />
-          <Users size={28} style={{ color: 'rgba(155,163,167,0.2)', margin: '0 auto 12px' }} />
+          <Users size={28} style={{ color: 'rgb(var(--c-text-secondary) / calc(0.2 * var(--c-sec-mult)))', margin: '0 auto 12px' }} />
           <p className="font-display text-off-white text-base mb-1">No students found</p>
           <p className="text-steel-gray/40 text-sm mb-6">Add your first student to get started</p>
           <button onClick={() => setShowModal(true)}
@@ -150,16 +150,16 @@ export function StudentsPage() {
         </div>
       ) : (
         <div className="relative overflow-hidden"
-          style={{ background: 'linear-gradient(145deg,#0d0d0d,#080808)', border: '1px solid rgba(255,255,255,0.05)', clipPath: 'polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,0 100%)' }}>
+          style={{ background: 'linear-gradient(145deg,rgb(var(--c-bg-elevated)),rgb(var(--c-bg-input)))', border: '1px solid rgb(var(--c-overlay) / calc(0.05 * var(--c-ovl-mult)))', clipPath: 'polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,0 100%)' }}>
           <div className="absolute top-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(to right,#E11919,rgba(225,25,25,0.2) 50%,transparent)' }} />
           <div className="absolute top-0 left-0 bottom-0 w-px" style={{ background: 'linear-gradient(to bottom,#E11919,transparent 60%)' }} />
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                <tr style={{ borderBottom: '1px solid rgb(var(--c-overlay) / calc(0.05 * var(--c-ovl-mult)))' }}>
                   {['ID', 'Name', 'Sport', 'Level', 'Branch', 'Status'].map(h => (
                     <th key={h} className="text-left"
-                      style={{ padding: '14px 20px', color: 'rgba(155,163,167,0.4)', fontSize: '0.52rem', letterSpacing: '0.26em', textTransform: 'uppercase' }}>
+                      style={{ padding: '14px 20px', color: 'rgb(var(--c-text-secondary) / calc(0.4 * var(--c-sec-mult)))', fontSize: '0.52rem', letterSpacing: '0.26em', textTransform: 'uppercase' }}>
                       {h}
                     </th>
                   ))}
@@ -170,7 +170,7 @@ export function StudentsPage() {
                   <tr key={s.id}
                     onClick={() => navigate(`/admin/students/${s.id}`)}
                     className="cursor-pointer transition-all duration-150 group"
-                    style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
+                    style={{ borderBottom: '1px solid rgb(var(--c-overlay) / calc(0.04 * var(--c-ovl-mult)))' }}
                     onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(225,25,25,0.04)' }}
                     onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}>
                     <td style={{ padding: '14px 20px' }}>
@@ -186,7 +186,7 @@ export function StudentsPage() {
                       <Badge variant={s.level}>{s.level}</Badge>
                     </td>
                     <td style={{ padding: '14px 20px' }}>
-                      <span style={{ color: 'rgba(155,163,167,0.5)', fontSize: '0.75rem' }}>{s.branch?.name ?? '—'}</span>
+                      <span style={{ color: 'rgb(var(--c-text-secondary) / calc(0.5 * var(--c-sec-mult)))', fontSize: '0.75rem' }}>{s.branch?.name ?? '—'}</span>
                     </td>
                     <td style={{ padding: '14px 20px' }}>
                       <Badge variant={s.is_active ? 'success' : 'error'}>{s.is_active ? 'Active' : 'Inactive'}</Badge>
@@ -203,14 +203,14 @@ export function StudentsPage() {
       {showModal && (
         <div className="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="relative overflow-hidden w-full max-w-md"
-            style={{ background: 'linear-gradient(145deg,#0d0d0d,#090909)', border: '1px solid rgba(225,25,25,0.2)', clipPath: 'polygon(0 0,calc(100% - 20px) 0,100% 20px,100% 100%,20px 100%,0 calc(100% - 20px))' }}>
+            style={{ background: 'linear-gradient(145deg,rgb(var(--c-bg-elevated)),rgb(var(--c-bg-input)))', border: '1px solid rgba(225,25,25,0.2)', clipPath: 'polygon(0 0,calc(100% - 20px) 0,100% 20px,100% 100%,20px 100%,0 calc(100% - 20px))' }}>
             <div className="absolute top-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(to right,#E11919,rgba(225,25,25,0.3) 50%,transparent)' }} />
             <div className="absolute top-0 left-0 bottom-0 w-px" style={{ background: 'linear-gradient(to bottom,#E11919,transparent 60%)' }} />
 
             <div className="p-7">
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <p style={{ color: 'rgba(225,25,25,0.6)', fontSize: '0.52rem', letterSpacing: '0.36em', textTransform: 'uppercase', marginBottom: 4 }}>Academy Management</p>
+                  <p style={{ color: 'rgba(225,25,25,var(--c-eyebrow-a))', fontSize: '0.52rem', letterSpacing: '0.36em', textTransform: 'uppercase', marginBottom: 4 }}>Management</p>
                   <h3 className="font-display text-off-white text-xl">New Student</h3>
                 </div>
                 <button onClick={() => { setShowModal(false); reset() }} className="text-steel-gray/40 hover:text-steel-gray transition-colors">
@@ -225,24 +225,24 @@ export function StudentsPage() {
                   { name: 'password'  as const, label: 'Password',    type: 'password' },
                 ].map(({ name, label, type }) => (
                   <div key={name}>
-                    <label style={{ display: 'block', color: 'rgba(155,163,167,0.5)', fontSize: '0.52rem', letterSpacing: '0.26em', textTransform: 'uppercase', marginBottom: 6 }}>{label}</label>
+                    <label style={{ display: 'block', color: 'rgb(var(--c-text-secondary) / calc(0.5 * var(--c-sec-mult)))', fontSize: '0.52rem', letterSpacing: '0.26em', textTransform: 'uppercase', marginBottom: 6 }}>{label}</label>
                     <input type={type} {...register(name)} style={inputStyle}
                       onFocus={e => { e.target.style.borderColor = 'rgba(225,25,25,0.4)' }}
-                      onBlur={e =>  { e.target.style.borderColor = 'rgba(255,255,255,0.07)' }} />
+                      onBlur={e =>  { e.target.style.borderColor = 'rgb(var(--c-overlay) / calc(0.07 * var(--c-ovl-mult)))' }} />
                     {errors[name] && <p style={{ color: '#E11919', fontSize: '0.65rem', marginTop: 4 }}>{errors[name]?.message}</p>}
                   </div>
                 ))}
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label style={{ display: 'block', color: 'rgba(155,163,167,0.5)', fontSize: '0.52rem', letterSpacing: '0.26em', textTransform: 'uppercase', marginBottom: 6 }}>Sport</label>
+                    <label style={{ display: 'block', color: 'rgb(var(--c-text-secondary) / calc(0.5 * var(--c-sec-mult)))', fontSize: '0.52rem', letterSpacing: '0.26em', textTransform: 'uppercase', marginBottom: 6 }}>Sport</label>
                     <select {...register('sport')} style={{ ...inputStyle, cursor: 'pointer' }}>
                       <option value="boxing">Boxing</option>
                       <option value="kickboxing">Kickboxing</option>
                     </select>
                   </div>
                   <div>
-                    <label style={{ display: 'block', color: 'rgba(155,163,167,0.5)', fontSize: '0.52rem', letterSpacing: '0.26em', textTransform: 'uppercase', marginBottom: 6 }}>Branch</label>
+                    <label style={{ display: 'block', color: 'rgb(var(--c-text-secondary) / calc(0.5 * var(--c-sec-mult)))', fontSize: '0.52rem', letterSpacing: '0.26em', textTransform: 'uppercase', marginBottom: 6 }}>Branch</label>
                     <select {...register('branch')} style={{ ...inputStyle, cursor: 'pointer' }}>
                       <option value="">Select...</option>
                       {(branches as any[])?.map((b: any) => <option key={b.id} value={b.id}>{b.name}</option>)}
@@ -252,7 +252,7 @@ export function StudentsPage() {
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', color: 'rgba(155,163,167,0.5)', fontSize: '0.52rem', letterSpacing: '0.26em', textTransform: 'uppercase', marginBottom: 6 }}>Join Date</label>
+                  <label style={{ display: 'block', color: 'rgb(var(--c-text-secondary) / calc(0.5 * var(--c-sec-mult)))', fontSize: '0.52rem', letterSpacing: '0.26em', textTransform: 'uppercase', marginBottom: 6 }}>Join Date</label>
                   <input type="date" {...register('join_date')} defaultValue={new Date().toISOString().split('T')[0]} style={inputStyle} />
                   {errors.join_date && <p style={{ color: '#E11919', fontSize: '0.65rem', marginTop: 4 }}>{errors.join_date.message}</p>}
                 </div>

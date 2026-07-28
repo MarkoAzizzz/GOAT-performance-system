@@ -29,12 +29,12 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
           <div key={t.id}
             className="pointer-events-auto flex items-center gap-3 px-4 py-3 animate-slide-up"
             style={{
-              background: 'linear-gradient(145deg, #0d0d0d, #080808)',
+              background: 'linear-gradient(145deg, rgb(var(--c-bg-elevated)), rgb(var(--c-bg-input)))',
               border: t.type === 'success'
                 ? '1px solid rgba(52,211,153,0.3)'
                 : t.type === 'error'
                   ? '1px solid rgba(225,25,25,0.35)'
-                  : '1px solid rgba(255,255,255,0.1)',
+                  : '1px solid rgb(var(--c-overlay) / calc(0.1 * var(--c-ovl-mult)))',
               clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%)',
               minWidth: 260, maxWidth: 380,
               boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
@@ -42,7 +42,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             <div className="shrink-0">
               {t.type === 'success' && <CheckCircle size={14} style={{ color: '#34d399' }} />}
               {t.type === 'error'   && <XCircle     size={14} style={{ color: '#E11919' }} />}
-              {t.type === 'info'    && <AlertCircle size={14} style={{ color: '#9BA3A7' }} />}
+              {t.type === 'info'    && <AlertCircle size={14} style={{ color: 'rgb(var(--c-text-secondary))' }} />}
             </div>
             <p className="flex-1 text-off-white text-xs">{t.message}</p>
             <button onClick={() => dismiss(t.id)} className="shrink-0 text-steel-gray/40 hover:text-steel-gray transition-colors">

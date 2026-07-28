@@ -38,8 +38,8 @@ class LoginSerializer(serializers.Serializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'email', 'full_name', 'role', 'is_active', 'created_at']
-        read_only_fields = ['id', 'role', 'created_at']
+        fields = ['id', 'email', 'full_name', 'role', 'is_active', 'last_login', 'created_at']
+        read_only_fields = ['id', 'role', 'created_at', 'last_login']
 
 
 class ChangePasswordSerializer(serializers.Serializer):

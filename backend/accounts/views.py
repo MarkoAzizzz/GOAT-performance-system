@@ -1,4 +1,5 @@
 import logging
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
@@ -21,6 +22,8 @@ class LoginView(APIView):
             return error_response('Invalid credentials.', serializer.errors)
 
         user = serializer.validated_data['user']
+        user.last_login = timezone.now()
+        user.save(update_fields=['last_login'])
         tokens = generate_tokens(user)
         logger.info('Login: %s', user.email)
 

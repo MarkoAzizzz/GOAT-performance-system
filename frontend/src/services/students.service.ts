@@ -53,6 +53,10 @@ export const studentsService = {
     const { data } = await api.get<ApiResponse<any[]>>('/students/branches/')
     return data.data
   },
+
+  async resetPassword(id: string, newPassword: string): Promise<void> {
+    await api.post(`/students/${id}/reset-password/`, { new_password: newPassword })
+  },
 }
 
 export const assessmentsService = {

@@ -1,3 +1,4 @@
+from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 from accounts.models import User
 from accounts.serializers import UserSerializer
@@ -44,3 +45,7 @@ class UpdateStudentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Student
         fields = ['sport', 'level', 'branch', 'join_date', 'is_active', 'profile_photo']
+
+
+class ResetPasswordSerializer(serializers.Serializer):
+    new_password = serializers.CharField(write_only=True, validators=[validate_password])

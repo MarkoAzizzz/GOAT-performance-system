@@ -11,18 +11,19 @@ import {
 } from 'recharts'
 
 const CHART = {
-  tooltip: { background: '#0D0D0D', border: '1px solid rgba(225,25,25,0.2)', borderRadius: 0, fontSize: 12 },
-  label: { color: '#9BA3A7', fontSize: 11 },
+  tooltip: { background: 'rgb(var(--c-bg-elevated))', border: '1px solid rgba(225,25,25,0.2)', borderRadius: 0, fontSize: 12 },
+  label: { color: 'rgb(var(--c-text-secondary))', fontSize: 11 },
   item: { color: '#E11919' },
-  tick: { fill: '#9BA3A7', fontSize: 10 },
-  grid: 'rgba(255,255,255,0.04)',
+  tick: { fill: 'rgb(var(--c-text-secondary))', fontSize: 10 },
+  grid: 'rgb(var(--c-overlay) / calc(0.04 * var(--c-ovl-mult)))',
 }
 
-const PILLAR_COLORS = ['#E11919', '#f59e0b', '#10b981', '#3b82f6', '#a855f7']
+const PILLAR_COLORS = ['#E11919', 'var(--c-chart-amber)', 'var(--c-chart-green)', 'var(--c-chart-blue)', 'var(--c-chart-purple)']
 
 const angularCard = {
-  background: 'linear-gradient(145deg, #0d0d0d 0%, #080808 100%)',
-  border: '1px solid rgba(255,255,255,0.05)',
+  background: 'linear-gradient(145deg, rgb(var(--c-bg-elevated)) 0%, rgb(var(--c-bg-input)) 100%)',
+  border: '1px solid rgb(var(--c-overlay) / calc(0.05 * var(--c-ovl-mult)))',
+  boxShadow: 'var(--c-card-shadow)',
   clipPath: 'polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%)',
 } as const
 
@@ -95,7 +96,7 @@ export function StudentProgressPage() {
   if (isLoading && myStudent) {
     return (
       <div className="space-y-6">
-        <div className="h-8 w-40 bg-white/5 animate-pulse" />
+        <div className="h-8 w-40 bg-overlay/5 animate-pulse" />
         <div className="grid grid-cols-2 gap-4">{Array.from({ length: 4 }).map((_, i) => <CardSkeleton key={i} />)}</div>
       </div>
     )
@@ -106,7 +107,7 @@ export function StudentProgressPage() {
 
       {/* Header */}
       <div>
-        <p style={{ color: 'rgba(225,25,25,0.6)', fontSize: '0.58rem', letterSpacing: '0.4em', textTransform: 'uppercase', marginBottom: 6 }}>
+        <p style={{ color: 'rgba(225,25,25,var(--c-eyebrow-a))', fontSize: '0.58rem', letterSpacing: '0.4em', textTransform: 'uppercase', marginBottom: 6 }}>
           Student Portal
         </p>
         <h1 className="font-display text-off-white" style={{ fontSize: '2.4rem', letterSpacing: '0.08em', lineHeight: 1 }}>
@@ -114,7 +115,7 @@ export function StudentProgressPage() {
         </h1>
         <div className="mt-2 flex items-center gap-3">
           <div className="h-[2px] w-10 bg-blood-red" />
-          <span style={{ color: 'rgba(155,163,167,0.38)', fontSize: '0.58rem', letterSpacing: '0.28em', textTransform: 'uppercase' }}>
+          <span style={{ color: 'rgb(var(--c-text-secondary) / calc(0.38 * var(--c-sec-mult)))', fontSize: '0.58rem', letterSpacing: '0.28em', textTransform: 'uppercase' }}>
             Detailed performance breakdown
           </span>
         </div>
@@ -161,9 +162,9 @@ export function StudentProgressPage() {
               <SectionHeader title="Latest Pillar Scores" />
               <ResponsiveContainer width="100%" height={200}>
                 <RadarChart data={radarData}>
-                  <PolarGrid stroke="rgba(255,255,255,0.08)" />
-                  <PolarAngleAxis dataKey="pillar" tick={{ fill: '#9BA3A7', fontSize: 10 }} />
-                  <PolarRadiusAxis domain={[0, 100]} tick={{ fill: '#9BA3A7', fontSize: 8 }} />
+                  <PolarGrid stroke="rgb(var(--c-overlay) / calc(0.08 * var(--c-ovl-mult)))" />
+                  <PolarAngleAxis dataKey="pillar" tick={{ fill: 'rgb(var(--c-text-secondary))', fontSize: 10 }} />
+                  <PolarRadiusAxis domain={[0, 100]} tick={{ fill: 'rgb(var(--c-text-secondary))', fontSize: 8 }} />
                   <Radar name="Score" dataKey="score" stroke="#E11919" fill="#E11919" fillOpacity={0.18} />
                 </RadarChart>
               </ResponsiveContainer>
@@ -183,7 +184,7 @@ export function StudentProgressPage() {
                     <CartesianGrid strokeDasharray="3 3" stroke={CHART.grid} vertical={false} />
                     <XAxis dataKey="date" tick={CHART.tick} tickLine={false} axisLine={false} />
                     <YAxis domain={[0, 100]} tick={CHART.tick} tickLine={false} axisLine={false} />
-                    <Tooltip contentStyle={CHART.tooltip} labelStyle={CHART.label} cursor={{ fill: 'rgba(255,255,255,0.025)' }} />
+                    <Tooltip contentStyle={CHART.tooltip} labelStyle={CHART.label} cursor={{ fill: 'rgb(var(--c-overlay) / calc(0.025 * var(--c-ovl-mult)))' }} />
                     {pillarNames.map((name: string, i: number) => (
                       <Bar key={name} dataKey={name} fill={PILLAR_COLORS[i % PILLAR_COLORS.length]} fillOpacity={0.85} radius={[2, 2, 0, 0]} />
                     ))}
@@ -193,7 +194,7 @@ export function StudentProgressPage() {
                   {pillarNames.map((name: string, i: number) => (
                     <div key={name} className="flex items-center gap-1.5">
                       <div className="w-2 h-2 rounded-sm" style={{ background: PILLAR_COLORS[i % PILLAR_COLORS.length] }} />
-                      <span style={{ color: 'rgba(155,163,167,0.5)', fontSize: '0.58rem', letterSpacing: '0.18em', textTransform: 'uppercase' }}>{name}</span>
+                      <span style={{ color: 'rgb(var(--c-text-secondary) / calc(0.5 * var(--c-sec-mult)))', fontSize: '0.58rem', letterSpacing: '0.18em', textTransform: 'uppercase' }}>{name}</span>
                     </div>
                   ))}
                 </div>

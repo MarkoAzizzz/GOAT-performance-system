@@ -4,6 +4,104 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Theme tokens ──────────────────────────────────────────
+   RGB triplets (no rgb()/# wrapper) so they work both as
+   `rgb(var(--x))` and `rgb(var(--x) / alpha)`. Note: `rgba(var(--x), alpha)`
+   is INVALID (mixing space-separated var substitution with comma syntax) —
+   it silently falls back to inherited/currentColor. Always use the slash form.
+   Dark is the default/original palette; [data-theme="light"] overrides it.
+   Accent colors (blood red family, status colors) intentionally
+   do NOT change between themes — only neutrals flip. */
+:root {
+  --c-bg-base: 5 5 5;          /* #050505 coal */
+  --c-bg-surface: 10 10 10;    /* #0a0a0a */
+  --c-bg-elevated: 13 13 13;   /* #0d0d0d */
+  --c-bg-input: 8 8 8;         /* #080808 */
+  --c-bg-header: 15 15 15;     /* #0f0f0f */
+  --c-bg-sidebar: 5 5 5;       /* same as page in dark — unchanged */
+  --c-text-primary: 245 245 245;   /* #F5F5F5 off-white */
+  --c-text-secondary: 155 163 167; /* #9BA3A7 steel-gray */
+  --c-overlay: 255 255 255;    /* white-based border/hover overlay on dark bg */
+  --c-accent-wash: 15 6 6;     /* subtle reddish-black tint for highlight cards */
+  --c-amber-wash: 10 8 0;      /* subtle amber-black tint for top-rank highlight cards */
+  --c-code-accent: 255 128 128; /* light red for inline code — readable on a dark bg */
+  /* Opacity multiplier applied to rgba(var(--c-text-secondary), X) call sites.
+     1 = no-op, preserves the exact original dark-mode look. Light mode raises
+     this so the same low-alpha "faint label" recipe still reads as solid text
+     on a white background instead of washing out. */
+  --c-sec-mult: 1;
+  --c-ovl-mult: 1;
+  --c-eyebrow-a: 0.6;   /* alpha for the small red "eyebrow" caption labels */
+  --c-chart-amber: #f59e0b;
+  --c-chart-green: #10b981;
+  --c-chart-blue: #3b82f6;
+  --c-chart-purple: #a855f7;
+  --c-card-shadow: none;
+  /* "accent" stat card (e.g. Active) gets a distinct red-tinted shell in dark
+     mode. In light mode this is neutralized below so every stat card in a row
+     shares the exact same shell — only the value text stays color-coded. */
+  --c-accent-border-rgb: 225 25 25;
+  --c-accent-border-a: 0.22;
+}
+
+[data-theme='light'] {
+  --c-bg-base: 222 224 227;     /* #DEE0E3 cool neutral gray canvas — not warm/cream */
+  --c-bg-surface: 241 243 245;  /* #F1F3F5 gray card fill — not stark white */
+  --c-bg-elevated: 241 243 245; /* #F1F3F5 */
+  --c-bg-input: 235 237 239;    /* #EBEDEF slightly deeper gray tier for inputs */
+  --c-bg-header: 255 255 255;   /* #FFFFFF white sidebar/header chrome */
+  --c-bg-sidebar: 255 255 255;  /* white sidebar, distinct from the gray content */
+  --c-text-primary: 17 19 21;      /* #111315 cool neutral near-black */
+  --c-text-secondary: 60 65 70;    /* #3C4146 cool neutral dark gray */
+  --c-overlay: 17 19 21;        /* cool neutral near-black borders/hover overlay */
+  --c-accent-wash: 241 243 245; /* neutralized — same as elevated, no pink tint */
+  --c-amber-wash: 241 243 245;  /* neutralized — same as elevated, no amber tint */
+  --c-code-accent: 185 15 22;   /* darker red for inline code — readable on a light bg */
+  --c-sec-mult: 2.4;
+  --c-ovl-mult: 2.2;
+  --c-eyebrow-a: 1;
+  --c-chart-amber: #B45309;
+  --c-chart-green: #047857;
+  --c-chart-blue: #1D4ED8;
+  --c-chart-purple: #7E22CE;
+  --c-card-shadow: 0 2px 4px rgba(17,19,21,0.06), 0 12px 28px rgba(17,19,21,0.10);
+  /* Same border as every other card in light mode — removes the "why does
+     only this one card look different" asymmetry the accent wash created. */
+  --c-accent-border-rgb: 17 19 21;
+  --c-accent-border-a: calc(0.05 * var(--c-ovl-mult));
+}
+
+/* Lets a subtree force dark regardless of the app-wide [data-theme] on <html> —
+   used by the always-dark LoginPage, which has its own hardcoded dark
+   background but otherwise uses theme-linked classes (text-off-white etc.).
+   Without this, those classes silently pick up the light palette's near-black
+   text whenever the user's last app-wide preference was light, making text
+   on the login page's dark background nearly invisible. */
+[data-theme='dark'] {
+  --c-bg-base: 5 5 5;
+  --c-bg-surface: 10 10 10;
+  --c-bg-elevated: 13 13 13;
+  --c-bg-input: 8 8 8;
+  --c-bg-header: 15 15 15;
+  --c-bg-sidebar: 5 5 5;
+  --c-text-primary: 245 245 245;
+  --c-text-secondary: 155 163 167;
+  --c-overlay: 255 255 255;
+  --c-accent-wash: 15 6 6;
+  --c-amber-wash: 10 8 0;
+  --c-code-accent: 255 128 128;
+  --c-sec-mult: 1;
+  --c-ovl-mult: 1;
+  --c-eyebrow-a: 0.6;
+  --c-chart-amber: #f59e0b;
+  --c-chart-green: #10b981;
+  --c-chart-blue: #3b82f6;
+  --c-chart-purple: #a855f7;
+  --c-card-shadow: none;
+  --c-accent-border-rgb: 225 25 25;
+  --c-accent-border-a: 0.22;
+}
+
 @layer base {
   * {
     box-sizing: border-box;
@@ -17,6 +115,7 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     scroll-behavior: smooth;
+    transition: background-color 0.2s ease, color 0.2s ease;
   }
 
   body {
@@ -26,11 +125,11 @@
   /* Scrollbar */
   ::-webkit-scrollbar { width: 4px; height: 4px; }
   ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: #ffffff15; border-radius: 2px; }
+  ::-webkit-scrollbar-thumb { background: rgb(var(--c-overlay) / 0.15); border-radius: 2px; }
   ::-webkit-scrollbar-thumb:hover { background: #E11919; }
 
   /* Select / input resets */
-  select option { background: #0D0D0D; color: #F5F5F5; }
+  select option { background: rgb(var(--c-bg-elevated)); color: rgb(var(--c-text-primary)); }
 
   #root {
     @apply min-h-screen;
@@ -40,16 +139,18 @@
 @layer components {
   /* ── Cards ── */
   .goat-card {
-    @apply bg-[#0D0D0D] border border-white/5 p-6 transition-all duration-300;
+    @apply bg-elevated border border-overlay/5 p-6 transition-all duration-300;
+    box-shadow: var(--c-card-shadow);
   }
 
   .goat-card-angular {
-    @apply bg-[#0D0D0D] border border-white/5 p-6 transition-all duration-300;
+    @apply bg-elevated border border-overlay/5 p-6 transition-all duration-300;
     clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%);
+    box-shadow: var(--c-card-shadow);
   }
 
   .goat-card-hover {
-    @apply goat-card hover:border-blood-red/20 hover:bg-[#111111];
+    @apply goat-card hover:border-blood-red/20 hover:bg-overlay/[0.04];
     transition: border-color 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
   }
   .goat-card-hover:hover {
@@ -95,7 +196,7 @@
   }
 
   .goat-btn-ghost {
-    @apply border border-white/10 text-steel-gray
+    @apply border border-overlay/10 text-steel-gray
            px-6 py-2.5
            cursor-pointer inline-flex items-center justify-center gap-2
            disabled:opacity-50 disabled:cursor-not-allowed;
@@ -117,25 +218,25 @@
 
   /* ── Inputs ── */
   .goat-input {
-    @apply w-full bg-[#080808] border border-white/10 text-off-white px-4 py-2.5 text-sm
+    @apply w-full bg-input-bg border border-overlay/10 text-off-white px-4 py-2.5 text-sm
            focus:outline-none transition-all placeholder:text-steel-gray/40;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
   }
   .goat-input:focus {
     border-color: rgba(225,25,25,0.5);
-    box-shadow: 0 0 0 3px rgba(225,25,25,0.07), inset 0 1px 0 rgba(255,255,255,0.03);
+    box-shadow: 0 0 0 3px rgba(225,25,25,0.07), inset 0 1px 0 rgb(var(--c-overlay) / 0.03);
   }
 
   .goat-select {
-    @apply bg-[#080808] border border-white/10 text-steel-gray px-3 py-2.5 text-sm
+    @apply bg-input-bg border border-overlay/10 text-steel-gray px-3 py-2.5 text-sm
            focus:outline-none focus:border-blood-red/50 transition-colors;
   }
 
   /* ── Backgrounds ── */
   .combat-grid-bg {
     background-image:
-      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+      linear-gradient(rgb(var(--c-overlay) / 0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(var(--c-overlay) / 0.025) 1px, transparent 1px);
     background-size: 48px 48px;
     position: relative;
   }
@@ -167,7 +268,7 @@
   }
 
   /* ── Dividers ── */
-  .goat-divider { @apply border-t border-white/5; }
+  .goat-divider { @apply border-t border-overlay/5; }
 
   /* ── Section headers ── */
   .goat-section-title {
@@ -182,11 +283,11 @@
   .goat-table { @apply w-full text-sm; }
   .goat-th {
     @apply text-left py-3 pr-4 text-steel-gray text-xs uppercase tracking-widest
-           border-b border-white/5 font-normal;
+           border-b border-overlay/5 font-normal;
   }
-  .goat-td { @apply py-3 pr-4 border-b border-white/5; }
-  .goat-tr { @apply hover:bg-white/[0.02] transition-colors; }
-  .goat-tr-clickable { @apply goat-tr cursor-pointer hover:bg-white/[0.03]; }
+  .goat-td { @apply py-3 pr-4 border-b border-overlay/5; }
+  .goat-tr { @apply hover:bg-overlay/[0.02] transition-colors; }
+  .goat-tr-clickable { @apply goat-tr cursor-pointer hover:bg-overlay/[0.03]; }
 
   /* ── Page header ── */
   .goat-page-header { @apply mb-8; }
@@ -217,6 +318,37 @@
   .logo-pulse-ring {
     animation: logo-ring-pulse 3s ease-in-out infinite;
   }
+}
+
+/* The dark-mode "CRT scanline" texture (repeating horizontal dark bands) reads
+   as unwanted horizontal line clutter on a light background, so it's off in
+   light mode — the plain gray canvas is intentional there. */
+[data-theme='light'] .scanlines::before {
+  display: none;
+}
+
+/* Unlayered so it wins over the @layer components utilities above.
+   Dark mode's card borders read fine at 5% white-on-near-black; the same
+   5% near-black-on-near-white washes out in light mode, so cards need a
+   visibly stronger edge (plus a soft shadow) to separate from the page. */
+[data-theme='light'] .goat-card,
+[data-theme='light'] .goat-card-angular,
+[data-theme='light'] .goat-card-hover {
+  border-color: rgba(26,22,19,0.16);
+}
+[data-theme='light'] .goat-th,
+[data-theme='light'] .goat-td,
+[data-theme='light'] .goat-divider {
+  border-color: rgba(26,22,19,0.14);
+}
+[data-theme='light'] aside,
+[data-theme='light'] header {
+  border-color: rgba(26,22,19,0.12);
+}
+[data-theme='light'] .goat-input,
+[data-theme='light'] .goat-select,
+[data-theme='light'] .goat-btn-ghost {
+  border-color: rgba(26,22,19,0.18);
 }
 
 @layer utilities {
