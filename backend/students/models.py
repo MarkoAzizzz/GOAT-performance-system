@@ -1,4 +1,5 @@
 import uuid
+from decimal import Decimal
 from django.db import models
 from accounts.models import User
 
@@ -34,6 +35,10 @@ class Student(models.Model):
     branch = models.ForeignKey(Branch, on_delete=models.PROTECT, related_name='students')
     sport = models.CharField(max_length=12, choices=Sport.choices)
     level = models.CharField(max_length=14, choices=Level.choices, default=Level.BEGINNER)
+    rating = models.DecimalField(
+        max_digits=6, decimal_places=1, default=Decimal('1000'),
+        help_text='Open-ended ELO-style rating. No fixed ceiling — see assessments.engine.',
+    )
     join_date = models.DateField()
     is_active = models.BooleanField(default=True)
     profile_photo = models.ImageField(upload_to='students/photos/', blank=True, null=True)

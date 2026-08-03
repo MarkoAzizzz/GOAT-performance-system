@@ -116,7 +116,7 @@ export function StudentHistoryPage() {
                     )}
                   </div>
 
-                  <span className="text-blood-red font-display text-xl shrink-0">{s.grade_percentage}%</span>
+                  <span className="text-blood-red font-display text-xl shrink-0">{Number(s.rating_after).toFixed(0)}</span>
                   <span className="text-steel-gray/40 shrink-0">
                     {isOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                   </span>

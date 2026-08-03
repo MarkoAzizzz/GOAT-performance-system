@@ -7,6 +7,7 @@ from decimal import Decimal
 from django.db import transaction
 from .engine import process_session
 from .models import AssessmentSession, CriterionScore, PillarScore, Criterion, Pillar
+from .coach_service import recompute_ratings
 
 logger = logging.getLogger(__name__)
 
@@ -84,32 +85,43 @@ def calculate_and_store(session: AssessmentSession) -> AssessmentSession:
             session.id, result.overall_score, result.grade_percentage, result.level,
         )
 
+    recompute_ratings(session.student)
     return session
 
 
 def get_student_progress(student_id: str) -> dict:
     """
     Return a progress summary for a student across all their assessments.
+    The headline metric is the open-ended rating (see assessments.engine) —
+    grade_percentage/overall_score still ride along per-session in `history`
+    since they're the bounded "how did this one test go" numbers, but they
+    are not aggregated into a top-line score here.
     """
     sessions = list(
         AssessmentSession.objects
         .filter(student_id=student_id, overall_score__isnull=False)
         .order_by('assessment_date')
         .values('id', 'assessment_date', 'overall_score', 'grade_percentage',
-                'level_at_assessment', 'coach_notes', 'action_plan', 'sessions_completed')
+                'level_at_assessment', 'coach_notes', 'action_plan', 'sessions_completed',
+                'rating_before', 'rating_after')
     )
 
     if not sessions:
         return _empty_progress()
 
-    scores = [Decimal(str(s['overall_score'])) for s in sessions]
+    ratings = [Decimal(str(s['rating_after'])) for s in sessions if s['rating_after'] is not None]
     latest = sessions[-1]
-    previous = sessions[-2] if len(sessions) > 1 else None
 
-    current = Decimal(str(latest['overall_score']))
-    prev = Decimal(str(previous['overall_score'])) if previous else None
+    current_rating = Decimal(str(latest['rating_after'])) if latest['rating_after'] is not None else None
+    rating_change = (
+        Decimal(str(latest['rating_after'])) - Decimal(str(latest['rating_before']))
+        if latest['rating_after'] is not None and latest['rating_before'] is not None
+        else None
+    )
 
-    # Include pillar scores for the latest session (for radar chart)
+    # Include pillar scores for the latest session (for radar chart) — pillar
+    # breakdown stays 0-10/percentage, it's about relative strengths within
+    # one assessment, not the lifetime rating.
     latest_pillar_scores = list(
         PillarScore.objects
         .filter(session_id=latest['id'])
@@ -118,16 +130,12 @@ def get_student_progress(student_id: str) -> dict:
         .order_by('pillar__order')
     )
 
-    improvement_pct = round((current - prev) * 10, 1) if prev is not None else None
-
     return {
-        'current_grade': float(current * 10),
-        'current_score': current,
-        'previous_score': prev,
-        'improvement': improvement_pct,
-        'highest_score': float(max(scores) * 10),
-        'lowest_score': float(min(scores) * 10),
-        'average_score': float(round(sum(scores) / len(scores), 2) * 10),
+        'current_rating': float(current_rating) if current_rating is not None else None,
+        'rating_change': float(rating_change) if rating_change is not None else None,
+        'highest_rating': float(max(ratings)) if ratings else None,
+        'lowest_rating': float(min(ratings)) if ratings else None,
+        'average_rating': float(round(sum(ratings) / len(ratings), 1)) if ratings else None,
         'total_assessments': len(sessions),
         'latest_level': latest['level_at_assessment'],
         'latest_pillar_scores': latest_pillar_scores,
@@ -137,13 +145,11 @@ def get_student_progress(student_id: str) -> dict:
 
 def _empty_progress() -> dict:
     return {
-        'current_grade': None,
-        'current_score': None,
-        'previous_score': None,
-        'improvement': None,
-        'highest_score': None,
-        'lowest_score': None,
-        'average_score': None,
+        'current_rating': None,
+        'rating_change': None,
+        'highest_rating': None,
+        'lowest_rating': None,
+        'average_rating': None,
         'total_assessments': 0,
         'latest_level': None,
         'latest_pillar_scores': [],

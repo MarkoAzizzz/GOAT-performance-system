@@ -82,6 +82,10 @@ class AssessmentSession(models.Model):
     grade_percentage = models.DecimalField(max_digits=5, decimal_places=2, null=True)
     level_at_assessment = models.CharField(max_length=14, blank=True)
 
+    # Open-ended rating snapshot — see assessments.engine.update_rating
+    rating_before = models.DecimalField(max_digits=6, decimal_places=1, null=True)
+    rating_after = models.DecimalField(max_digits=6, decimal_places=1, null=True)
+
     synced_from_sheet = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 

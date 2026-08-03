@@ -13,5 +13,5 @@ class LeaderboardSerializer(serializers.ModelSerializer):
         model = LeaderboardSnapshot
         fields = [
             'student_id', 'student_name', 'sport', 'level', 'profile_photo',
-            'current_score', 'previous_score', 'improvement', 'total_assessments',
+            'current_rating', 'previous_rating', 'rating_change', 'total_assessments',
         ]

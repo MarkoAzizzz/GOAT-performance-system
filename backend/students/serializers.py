@@ -20,11 +20,11 @@ class StudentSerializer(serializers.ModelSerializer):
         model = Student
         fields = [
             'id', 'student_id', 'full_name', 'email',
-            'sport', 'level', 'branch', 'branch_name',
+            'sport', 'level', 'rating', 'branch', 'branch_name',
             'join_date', 'is_active', 'profile_photo',
             'created_at',
         ]
-        read_only_fields = ['id', 'student_id', 'created_at']
+        read_only_fields = ['id', 'student_id', 'rating', 'created_at']
 
 
 class CreateStudentSerializer(serializers.Serializer):

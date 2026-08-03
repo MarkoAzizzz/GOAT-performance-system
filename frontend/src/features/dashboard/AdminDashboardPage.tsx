@@ -66,9 +66,9 @@ export function AdminDashboardPage() {
           <StatCard label="Total Students" value={data?.total_students ?? 0}        icon={Users} />
           <StatCard label="Active"          value={data?.active_students ?? 0}       icon={TrendingUp} accent />
           <StatCard label="This Week"       value={data?.weekly_assessments ?? 0}    icon={ClipboardList} sub="assessments" />
-          <StatCard label="Avg Score"       value={`${data?.average_score ?? 0}%`}   icon={Target} />
-          <StatCard label="Highest"         value={`${data?.highest_score ?? 0}%`}   icon={Award} />
-          <StatCard label="Lowest"          value={`${data?.lowest_score ?? 0}%`}    icon={BarChart2} />
+          <StatCard label="Avg Rating"      value={data?.average_rating ?? 0}        icon={Target} />
+          <StatCard label="Highest"         value={data?.highest_rating ?? 0}        icon={Award} />
+          <StatCard label="Lowest"          value={data?.lowest_rating ?? 0}         icon={BarChart2} />
         </div>
       )}
 
@@ -113,10 +113,10 @@ export function AdminDashboardPage() {
 
             <div className="shrink-0 text-right">
               <p className="font-display text-blood-red" style={{ fontSize: '2.2rem', lineHeight: 1, letterSpacing: '0.04em' }}>
-                +{data.biggest_improvement.improvement}%
+                +{Number(data.biggest_improvement.rating_change).toFixed(0)}
               </p>
               <p style={{ color: 'rgba(225,25,25,0.45)', fontSize: '0.55rem', letterSpacing: '0.32em', textTransform: 'uppercase', marginTop: 4 }}>
-                Score increase
+                Rating increase
               </p>
             </div>
           </div>

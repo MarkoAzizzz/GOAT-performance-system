@@ -18,7 +18,7 @@ def refresh_student(student: Student) -> None:
         AssessmentSession.objects
         .filter(student=student, overall_score__isnull=False)
         .order_by('-assessment_date')
-        .only('id', 'overall_score', 'grade_percentage')
+        .only('id', 'overall_score', 'grade_percentage', 'rating_before', 'rating_after')
     )
 
     if not sessions:
@@ -28,9 +28,13 @@ def refresh_student(student: Student) -> None:
     latest = sessions[0]
     previous = sessions[1] if len(sessions) > 1 else None
 
-    current_score = Decimal(str(latest.grade_percentage))
-    prev_score = Decimal(str(previous.grade_percentage)) if previous else None
-    improvement = round(current_score - prev_score, 2) if prev_score is not None else None
+    current_rating = Decimal(str(latest.rating_after)) if latest.rating_after is not None else None
+    prev_rating = Decimal(str(latest.rating_before)) if latest.rating_before is not None else None
+    rating_change = (
+        round(current_rating - prev_rating, 1)
+        if current_rating is not None and prev_rating is not None
+        else None
+    )
 
     with transaction.atomic():
         LeaderboardSnapshot.objects.update_or_create(
@@ -38,16 +42,16 @@ def refresh_student(student: Student) -> None:
             defaults={
                 'latest_session': latest,
                 'previous_session': previous,
-                'current_score': current_score,
-                'previous_score': prev_score,
-                'improvement': improvement,
+                'current_rating': current_rating,
+                'previous_rating': prev_rating,
+                'rating_change': rating_change,
                 'total_assessments': len(sessions),
             },
         )
 
     logger.debug(
-        'Leaderboard refreshed: student=%s score=%s improvement=%s',
-        student.student_id, current_score, improvement,
+        'Leaderboard refreshed: student=%s rating=%s change=%s',
+        student.student_id, current_rating, rating_change,
     )
 
 
@@ -70,12 +74,12 @@ def get_leaderboard(
 ) -> list:
     """
     Return ranked leaderboard entries.
-    Primary sort: biggest improvement. Secondary: highest current score.
+    Primary sort: highest current rating. Secondary: biggest recent rating change.
     """
     qs = (
         LeaderboardSnapshot.objects
         .select_related('student__user', 'student__branch')
-        .order_by('-improvement', '-current_score')
+        .order_by('-current_rating', '-rating_change')
     )
 
     if branch_id:

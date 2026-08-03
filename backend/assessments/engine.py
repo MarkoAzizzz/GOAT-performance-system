@@ -3,18 +3,42 @@ Assessment Engine — all scoring calculations live here.
 No database access. No Django imports. Pure functions only.
 Swap the formula by changing this file alone.
 """
+import math
 from decimal import Decimal, ROUND_HALF_UP
 from dataclasses import dataclass
 from typing import Optional
 
 
 TWO_DP = Decimal('0.01')
+RATING_DP = Decimal('1')
 
-# Tier thresholds (grade %)
+# Tier thresholds (grade %) — used for the per-session snapshot only.
 LEVEL_THRESHOLDS = [
     (Decimal('80'), 'advanced'),
     (Decimal('50'), 'intermediate'),
     (Decimal('0'),  'beginner'),
+]
+
+# ── Rating system ────────────────────────────────────────────────────────────
+# Open-ended, ELO-style rating layered on top of the bounded per-session grade.
+# A student's rating implies an "expected" grade % via a saturating curve
+# centered on RATING_START. Beating that expectation raises the rating,
+# missing it lowers it — and because the curve approaches (never reaches)
+# 100%, there's no rating high enough to make further gains impossible, only
+# harder to earn. Change RATING_SCALE/K_* here to retune; nothing else in the
+# codebase encodes the formula.
+RATING_START = Decimal('1000')
+RATING_SCALE = Decimal('250')        # higher = flatter curve = easier to keep climbing at high ratings
+K_PROVISIONAL = Decimal('80')        # first few assessments: converge fast to a student's true level
+K_ESTABLISHED = Decimal('24')        # afterwards: smaller, steadier movements
+PROVISIONAL_ASSESSMENTS = 5
+
+# Rating bands — no upper bound on the top tier, and more tiers can be added
+# above 'advanced' later without this function needing a ceiling.
+RATING_LEVEL_THRESHOLDS = [
+    (Decimal('1300'), 'advanced'),
+    (Decimal('900'),  'intermediate'),
+    (Decimal('0'),    'beginner'),
 ]
 
 
@@ -44,6 +68,54 @@ class AssessmentResult:
 
 def _round(value: Decimal) -> Decimal:
     return value.quantize(TWO_DP, rounding=ROUND_HALF_UP)
+
+
+def _round_rating(value: Decimal) -> Decimal:
+    return value.quantize(RATING_DP, rounding=ROUND_HALF_UP)
+
+
+def expected_grade_pct(rating: Decimal) -> Decimal:
+    """
+    The grade % a student at this rating is 'expected' to produce this
+    assessment — a logistic curve centered on RATING_START (50%) that
+    saturates toward 100% without ever reaching it.
+    """
+    exponent = -(rating - RATING_START) / RATING_SCALE
+    denom = Decimal('1') + Decimal(math.exp(float(exponent)))
+    return _round(Decimal('100') / denom)
+
+
+def k_factor(prior_assessment_count: int) -> Decimal:
+    """New students' ratings move fast to find their true level; established
+    students' ratings move in smaller, steadier increments."""
+    return K_PROVISIONAL if prior_assessment_count < PROVISIONAL_ASSESSMENTS else K_ESTABLISHED
+
+
+def update_rating(
+    current_rating: Decimal,
+    actual_grade_pct: Decimal,
+    prior_assessment_count: int,
+) -> Decimal:
+    """
+    ELO-style update: moves the rating toward or away from its current value
+    based on whether this assessment beat or missed the grade % that rating
+    implied. Beating your own expectation raises it; missing it lowers it.
+    """
+    expected = expected_grade_pct(current_rating)
+    k = k_factor(prior_assessment_count)
+    delta = k * (actual_grade_pct - expected) / Decimal('100')
+    return _round_rating(current_rating + delta)
+
+
+def assign_level_from_rating(rating: Optional[Decimal]) -> str:
+    """Map rating to Beginner / Intermediate / Advanced — the student-facing
+    level, now open-ended at the top instead of grade-% capped."""
+    if rating is None:
+        return 'beginner'
+    for threshold, level in RATING_LEVEL_THRESHOLDS:
+        if rating >= threshold:
+            return level
+    return 'beginner'
 
 
 def effective_criterion_score(

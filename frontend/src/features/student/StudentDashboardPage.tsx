@@ -36,7 +36,7 @@ export function StudentDashboardPage() {
 
   const trendData = [...history].map((s: any) => ({
     date: new Date(s.assessment_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-    score: s.grade_percentage,
+    rating: s.rating_after,
   }))
 
   const lb = (leaderboard as any[]) ?? []
@@ -90,8 +90,8 @@ export function StudentDashboardPage() {
 
       {/* ── Stats ───────────────────────────────────────── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard label="Current Score"  value={latest ? `${latest.grade_percentage}%` : '—'} icon={Target}      accent />
-        <StatCard label="Improvement"    value={prog?.improvement != null ? `${prog.improvement > 0 ? '+' : ''}${(prog.improvement * 10).toFixed(1)}%` : '—'} icon={TrendingUp} />
+        <StatCard label="Rating"         value={latest ? Number(latest.rating_after).toFixed(0) : '—'} icon={Target}      accent />
+        <StatCard label="Rating Change"  value={prog?.rating_change != null ? `${prog.rating_change > 0 ? '+' : ''}${Number(prog.rating_change).toFixed(0)}` : '—'} icon={TrendingUp} />
         <StatCard label="Assessments"    value={prog?.total_assessments ?? 0}                icon={ClipboardList} />
         <StatCard label="Rank"           value={myRank > 0 ? `#${myRank}` : '—'}            icon={Award}         sub="on leaderboard" />
       </div>
@@ -140,7 +140,7 @@ export function StudentDashboardPage() {
           <div className="p-6">
             <div className="flex items-center gap-3 mb-5">
               <div className="w-[3px] h-4 bg-blood-red" />
-              <h3 className="font-display text-off-white text-xs uppercase tracking-[0.22em]">Score Trend</h3>
+              <h3 className="font-display text-off-white text-xs uppercase tracking-[0.22em]">Rating Trend</h3>
             </div>
             <ResponsiveContainer width="100%" height={200}>
               <LineChart data={trendData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
@@ -152,17 +152,17 @@ export function StudentDashboardPage() {
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgb(var(--c-overlay) / calc(0.04 * var(--c-ovl-mult)))" />
                 <XAxis dataKey="date" tick={{ fill: 'rgb(var(--c-text-secondary))', fontSize: 10 }} tickLine={false} axisLine={false} />
-                <YAxis domain={[0, 100]} tick={{ fill: 'rgb(var(--c-text-secondary))', fontSize: 10 }} tickLine={false} axisLine={false} />
+                <YAxis domain={['dataMin - 30', 'dataMax + 30']} tick={{ fill: 'rgb(var(--c-text-secondary))', fontSize: 10 }} tickLine={false} axisLine={false} />
                 <Tooltip
                   contentStyle={{ background: 'rgb(var(--c-bg-elevated))', border: '1px solid rgba(225,25,25,0.2)', borderRadius: 0, fontSize: 12 }}
                   itemStyle={{ color: '#E11919' }}
                   labelStyle={{ color: 'rgb(var(--c-text-secondary))', fontSize: 11 }}
                   cursor={{ stroke: 'rgba(225,25,25,0.2)', strokeWidth: 1 }}
                 />
-                <Line type="monotone" dataKey="score" stroke="#E11919" strokeWidth={2}
+                <Line type="monotone" dataKey="rating" stroke="#E11919" strokeWidth={2}
                   dot={{ fill: '#E11919', r: 3, strokeWidth: 0 }}
                   activeDot={{ r: 5, fill: '#E11919', stroke: 'rgba(225,25,25,0.3)', strokeWidth: 4 }}
-                  name="Score %"
+                  name="Rating"
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -194,9 +194,9 @@ export function StudentDashboardPage() {
             {/* Score + level */}
             <div className="flex items-center gap-6 mb-5 pb-5" style={{ borderBottom: '1px solid rgb(var(--c-overlay) / calc(0.05 * var(--c-ovl-mult)))' }}>
               <div>
-                <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.4 * var(--c-sec-mult)))', fontSize: '0.5rem', letterSpacing: '0.24em', textTransform: 'uppercase', marginBottom: 4 }}>Final Score</p>
+                <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.4 * var(--c-sec-mult)))', fontSize: '0.5rem', letterSpacing: '0.24em', textTransform: 'uppercase', marginBottom: 4 }}>Rating</p>
                 <p className="font-display text-blood-red" style={{ fontSize: '3.2rem', lineHeight: 1 }}>
-                  {latest.grade_percentage}<span style={{ fontSize: '1.4rem' }}>%</span>
+                  {Number(latest.rating_after).toFixed(0)}
                 </p>
               </div>
               <div>

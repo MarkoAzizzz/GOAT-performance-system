@@ -45,7 +45,7 @@ export function LeaderboardPage() {
           <div className="mt-2 flex items-center gap-3">
             <div className="h-[2px] w-10 bg-blood-red" />
             <span style={{ color: 'rgb(var(--c-text-secondary) / calc(0.38 * var(--c-sec-mult)))', fontSize: '0.58rem', letterSpacing: '0.28em', textTransform: 'uppercase' }}>
-              Ranked by biggest improvement · {entries.length} athletes
+              Ranked by rating · {entries.length} athletes
             </span>
           </div>
         </div>
@@ -129,14 +129,14 @@ export function LeaderboardPage() {
                 </div>
 
                 <div className="text-right shrink-0 min-w-14">
-                  <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.4 * var(--c-sec-mult)))', fontSize: '0.5rem', letterSpacing: '0.2em', textTransform: 'uppercase' }}>Score</p>
-                  <p className="font-display text-off-white text-sm">{entry.current_score ?? '—'}%</p>
+                  <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.4 * var(--c-sec-mult)))', fontSize: '0.5rem', letterSpacing: '0.2em', textTransform: 'uppercase' }}>Rating</p>
+                  <p className="font-display text-off-white text-sm">{entry.current_rating != null ? Number(entry.current_rating).toFixed(0) : '—'}</p>
                 </div>
 
                 <div className="text-right shrink-0 min-w-20">
-                  <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.4 * var(--c-sec-mult)))', fontSize: '0.5rem', letterSpacing: '0.2em', textTransform: 'uppercase' }}>Improvement</p>
-                  <p className="font-display text-lg" style={{ color: (entry.improvement ?? 0) >= 0 ? '#34d399' : '#E11919' }}>
-                    {entry.improvement != null ? `${entry.improvement > 0 ? '+' : ''}${entry.improvement}%` : '—'}
+                  <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.4 * var(--c-sec-mult)))', fontSize: '0.5rem', letterSpacing: '0.2em', textTransform: 'uppercase' }}>Change</p>
+                  <p className="font-display text-lg" style={{ color: (entry.rating_change ?? 0) >= 0 ? '#34d399' : '#E11919' }}>
+                    {entry.rating_change != null ? `${entry.rating_change > 0 ? '+' : ''}${Number(entry.rating_change).toFixed(0)}` : '—'}
                   </p>
                 </div>
               </div>

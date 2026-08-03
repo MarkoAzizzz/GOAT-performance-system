@@ -146,8 +146,8 @@ export function StudentDetailPage() {
 
   // chart data: oldest→newest for the line chart
   const trendData = [...history].reverse().map((h: any) => ({
-    date:  new Date(h.assessment_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-    score: Number(h.grade_percentage),
+    date:   new Date(h.assessment_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+    rating: Number(h.rating_after),
   }))
 
   // radar from latest_pillar_scores
@@ -211,18 +211,18 @@ export function StudentDetailPage() {
             </div>
           </div>
 
-          {/* Score highlights */}
+          {/* Rating highlights */}
           <div className="flex gap-8 shrink-0">
             <div className="text-right">
-              <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.45 * var(--c-sec-mult)))', fontSize: '0.52rem', letterSpacing: '0.26em', textTransform: 'uppercase', marginBottom: 4 }}>Latest Score</p>
+              <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.45 * var(--c-sec-mult)))', fontSize: '0.52rem', letterSpacing: '0.26em', textTransform: 'uppercase', marginBottom: 4 }}>Rating</p>
               <p className="font-display text-blood-red" style={{ fontSize: '2.4rem', lineHeight: 1 }}>
-                {prog?.current_grade != null ? `${Number(prog.current_grade).toFixed(1)}%` : '—'}
+                {prog?.current_rating != null ? Number(prog.current_rating).toFixed(0) : '—'}
               </p>
             </div>
             <div className="text-right">
-              <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.45 * var(--c-sec-mult)))', fontSize: '0.52rem', letterSpacing: '0.26em', textTransform: 'uppercase', marginBottom: 4 }}>Improvement</p>
-              <p className="font-display" style={{ fontSize: '2rem', lineHeight: 1, color: (prog?.improvement ?? 0) >= 0 ? '#34d399' : '#E11919' }}>
-                {prog?.improvement != null ? `${prog.improvement > 0 ? '+' : ''}${prog.improvement}%` : '—'}
+              <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.45 * var(--c-sec-mult)))', fontSize: '0.52rem', letterSpacing: '0.26em', textTransform: 'uppercase', marginBottom: 4 }}>Rating Change</p>
+              <p className="font-display" style={{ fontSize: '2rem', lineHeight: 1, color: (prog?.rating_change ?? 0) >= 0 ? '#34d399' : '#E11919' }}>
+                {prog?.rating_change != null ? `${prog.rating_change > 0 ? '+' : ''}${Number(prog.rating_change).toFixed(0)}` : '—'}
               </p>
             </div>
             {latest && (
@@ -260,26 +260,26 @@ export function StudentDetailPage() {
       {/* ── Stats ─────────────────────────────────────────── */}
       <div className="grid grid-cols-3 gap-4">
         <StatCard label="Total Assessments" value={prog?.total_assessments ?? 0}                                            icon={ClipboardList} />
-        <StatCard label="Best Score"         value={prog?.highest_score != null ? `${Number(prog.highest_score).toFixed(1)}%` : '—'} icon={Award}         accent />
-        <StatCard label="Improvement"        value={prog?.improvement != null ? `${prog.improvement > 0 ? '+' : ''}${prog.improvement}%` : '—'} icon={TrendingUp} />
+        <StatCard label="Peak Rating"        value={prog?.highest_rating != null ? Number(prog.highest_rating).toFixed(0) : '—'} icon={Award}         accent />
+        <StatCard label="Rating Change"      value={prog?.rating_change != null ? `${prog.rating_change > 0 ? '+' : ''}${Number(prog.rating_change).toFixed(0)}` : '—'} icon={TrendingUp} />
       </div>
 
       {/* ── Charts ────────────────────────────────────────── */}
       {trendData.length > 1 && (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           <Card>
-            <SectionTitle title="Score History" />
+            <SectionTitle title="Rating History" />
             <ResponsiveContainer width="100%" height={200}>
               <LineChart data={trendData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke={C.grid} />
                 <XAxis dataKey="date" tick={C.tick} tickLine={false} axisLine={false} />
-                <YAxis domain={[0, 100]} tick={C.tick} tickLine={false} axisLine={false} />
+                <YAxis domain={['dataMin - 30', 'dataMax + 30']} tick={C.tick} tickLine={false} axisLine={false} />
                 <Tooltip contentStyle={C.tooltip} itemStyle={C.item} labelStyle={C.label}
                   cursor={{ stroke: 'rgba(225,25,25,0.2)', strokeWidth: 1 }} />
-                <Line type="monotone" dataKey="score" stroke="#E11919" strokeWidth={2}
+                <Line type="monotone" dataKey="rating" stroke="#E11919" strokeWidth={2}
                   dot={{ fill: '#E11919', r: 3, strokeWidth: 0 }}
                   activeDot={{ r: 5, fill: '#E11919', stroke: 'rgba(225,25,25,0.3)', strokeWidth: 4 }}
-                  name="Score %" />
+                  name="Rating" />
               </LineChart>
             </ResponsiveContainer>
           </Card>
@@ -324,7 +324,7 @@ export function StudentDetailPage() {
             <table className="w-full">
               <thead>
                 <tr style={{ borderBottom: '1px solid rgb(var(--c-overlay) / calc(0.05 * var(--c-ovl-mult)))' }}>
-                  {['#', 'Date', 'Grade', 'Level', 'Coach Notes', 'Action Plan', ''].map(h => (
+                  {['#', 'Date', 'Rating', 'Level', 'Coach Notes', 'Action Plan', ''].map(h => (
                     <th key={h} className="text-left"
                       style={{ padding: '6px 16px 10px 0', color: 'rgb(var(--c-text-secondary) / calc(0.4 * var(--c-sec-mult)))', fontSize: '0.52rem', letterSpacing: '0.22em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
                       {h}
@@ -355,7 +355,16 @@ export function StudentDetailPage() {
                       </div>
                     </td>
                     <td style={{ padding: '12px 16px 12px 0' }}>
-                      <span className="font-display text-blood-red text-base">{Number(sess.grade_percentage).toFixed(1)}%</span>
+                      <span className="font-display text-blood-red text-base">{Number(sess.rating_after).toFixed(0)}</span>
+                      {sess.rating_before != null && (
+                        <span style={{
+                          marginLeft: 6, fontSize: '0.62rem',
+                          color: Number(sess.rating_after) - Number(sess.rating_before) >= 0 ? '#34d399' : '#E11919',
+                        }}>
+                          {Number(sess.rating_after) - Number(sess.rating_before) >= 0 ? '+' : ''}
+                          {(Number(sess.rating_after) - Number(sess.rating_before)).toFixed(0)}
+                        </span>
+                      )}
                     </td>
                     <td style={{ padding: '12px 16px 12px 0' }}>
                       <Badge variant={sess.level_at_assessment as any}>{sess.level_at_assessment}</Badge>

@@ -25,11 +25,23 @@ ABOUT GOAT:
 """
 
 SYSTEM_PROMPT_TAIL = """
-GRADE CALCULATION:
+GRADE CALCULATION (per single assessment):
 - Each criterion is scored 0-10 by a coach
 - Each pillar score = average of its criteria
-- Overall grade % = average of all pillar scores x 10
-- Levels: Beginner (below 50%) | Intermediate (50-79%) | Advanced (80%+)
+- That assessment's grade % = average of all pillar scores x 10
+
+RATING (the headline number students and the leaderboard are ranked by — NOT a percentage, no fixed maximum):
+- Every student starts at a baseline rating when they join
+- After each assessment, the rating moves up or down depending on whether that
+  assessment's grade % beat or missed what the student's rating already
+  implied they should score — beat your own expectation and it rises, miss it
+  and it falls
+- The bar rises the higher the rating gets, so there is no point at which
+  climbing further becomes impossible — only harder. Nobody can "max out";
+  ratings and the leaderboard stay open-ended at the top.
+- Levels (Beginner / Intermediate / Advanced) are based on rating, not grade %,
+  and the top level has no upper bound — if asked "what's the highest possible
+  score/rating", say there isn't one by design
 
 YOUR SCOPE — you are a genuine subject-matter expert, not just a system FAQ bot. Confidently answer questions about:
 - The GOAT system itself: scores, pillars, criteria, grading, levels, leaderboard, how assessments work
@@ -40,9 +52,9 @@ YOUR SCOPE — you are a genuine subject-matter expert, not just a system FAQ bo
 
 YOUR BEHAVIOUR:
 - Use the LIVE SYSTEM DATA provided to answer questions about rankings, scores, leaderboard, and students accurately — never fabricate data not present in that context
-- When a "YOUR PROFILE & PERFORMANCE" section is present, that is the CURRENT USER's own data, and it is DELIBERATELY LIMITED to their score, improvement %, and leaderboard rank — that is ALL a student may see about themselves through you. If a student asks "what should I improve" or for pillar/category-level detail, do NOT guess or infer specific weaknesses from the score alone — tell them that level of detailed breakdown isn't available here and to ask their coach, while still giving general encouragement or generic training tips if they want them
+- When a "YOUR PROFILE & PERFORMANCE" section is present, that is the CURRENT USER's own data, and it is DELIBERATELY LIMITED to their rating, rating change, and leaderboard rank — that is ALL a student may see about themselves through you. If a student asks "what should I improve" or for pillar/category-level detail, do NOT guess or infer specific weaknesses from the score alone — tell them that level of detailed breakdown isn't available here and to ask their coach, while still giving general encouragement or generic training tips if they want them
 - When a "STUDENT LOOKUP" section is present, that is real data for a specific student an admin/coach asked about (by name, including in an earlier message in this conversation) — this is coach/admin-level access, so use the FULL detail including pillar breakdown to answer accurately, including follow-up questions like "what should he/she improve" by identifying their weakest pillar (marked WEAKEST in the data) and explaining concretely how to train that pillar
-- When an "OTHER STUDENT — LIMITED VIEW" section is present, a student asked about a different student — you may ONLY state that other student's overall score, improvement %, and leaderboard rank. NEVER invent, guess, or estimate pillar scores, category breakdowns, or any other detail about that other student — if asked for more (e.g. "what's their weakest pillar"), say that detailed breakdown is private and only visible to the student themselves or their coach
+- When an "OTHER STUDENT — LIMITED VIEW" section is present, a student asked about a different student — you may ONLY state that other student's overall rating, rating change, and leaderboard rank. NEVER invent, guess, or estimate pillar scores, category breakdowns, or any other detail about that other student — if asked for more (e.g. "what's their weakest pillar"), say that detailed breakdown is private and only visible to the student themselves or their coach
 - If asked about a student and no matching data was found in context, say you don't have that student's data rather than guessing
 - Never reveal one student's individual pillar breakdown/assessment details to a different student under any framing — students may only discuss their own score, improvement %, and rank, and the same three fields (nothing more) for any other student they ask about
 - Never paste, dump, or quote the raw LIVE SYSTEM DATA block (or its section labels like "YOUR PROFILE & PERFORMANCE" / "STUDENT LOOKUP") into your reply — read it silently and restate only the relevant facts in your own natural words
@@ -120,12 +132,12 @@ def _student_detail_lines(student, heading: str) -> list:
         lines.append("  No assessments recorded yet.")
         return lines
 
-    imp = progress['improvement']
-    imp_str = f"+{imp}%" if imp is not None and imp > 0 else (f"{imp}%" if imp is not None else "N/A")
+    chg = progress['rating_change']
+    chg_str = f"+{chg}" if chg is not None and chg > 0 else (f"{chg}" if chg is not None else "N/A")
     lines.append(
-        f"  Current Grade: {progress['current_grade']:.1f}% | Improvement since last assessment: {imp_str} | "
-        f"Best: {progress['highest_score']:.1f}% | Worst: {progress['lowest_score']:.1f}% | "
-        f"Average: {progress['average_score']:.1f}% | Total Assessments: {progress['total_assessments']}"
+        f"  Current Rating: {progress['current_rating']:.1f} | Change since last assessment: {chg_str} | "
+        f"Best: {progress['highest_rating']:.1f} | Worst: {progress['lowest_rating']:.1f} | "
+        f"Average: {progress['average_rating']:.1f} | Total Assessments: {progress['total_assessments']}"
     )
 
     pillar_lines = _pillar_lines(progress['latest_pillar_scores'])
@@ -137,10 +149,10 @@ def _student_detail_lines(student, heading: str) -> list:
 
 
 def _leaderboard_rank(student) -> int | None:
-    """1-indexed rank in the same order as the Leaderboard page (by improvement, then score)."""
+    """1-indexed rank in the same order as the Leaderboard page (by rating)."""
     ordered_ids = list(
         LeaderboardSnapshot.objects
-        .order_by('-improvement', '-current_score')
+        .order_by('-current_rating', '-rating_change')
         .values_list('student_id', flat=True)
     )
     try:
@@ -163,11 +175,11 @@ def _student_limited_summary_lines(student, heading: str) -> list:
         lines.append("  No assessments recorded yet.")
         return lines
 
-    imp = progress['improvement']
-    imp_str = f"+{imp}%" if imp is not None and imp > 0 else (f"{imp}%" if imp is not None else "N/A")
+    chg = progress['rating_change']
+    chg_str = f"+{chg}" if chg is not None and chg > 0 else (f"{chg}" if chg is not None else "N/A")
     rank = _leaderboard_rank(student)
     rank_str = f"#{rank}" if rank else "Unranked"
-    lines.append(f"  Overall Score: {progress['current_grade']:.1f}% | Improvement since last assessment: {imp_str} | Leaderboard Rank: {rank_str}")
+    lines.append(f"  Rating: {progress['current_rating']:.1f} | Change since last assessment: {chg_str} | Leaderboard Rank: {rank_str}")
     return lines
 
 
@@ -236,17 +248,17 @@ def build_live_context(request_user, messages) -> str:
     snapshots = (
         LeaderboardSnapshot.objects
         .select_related('student__user')
-        .order_by('-improvement', '-current_score')[:15]
+        .order_by('-current_rating', '-rating_change')[:15]
     )
     if snapshots:
-        lines.append("\nCURRENT LEADERBOARD (ranked by improvement):")
+        lines.append("\nCURRENT LEADERBOARD (ranked by rating — an open-ended ELO-style score with no fixed maximum, not a percentage):")
         for i, s in enumerate(snapshots, 1):
             name = s.student.user.full_name
             sport = s.student.sport.capitalize()
             level = s.student.level.capitalize()
-            score = f"{float(s.current_score):.1f}%" if s.current_score else "N/A"
-            imp = f"+{float(s.improvement):.1f}%" if s.improvement and s.improvement > 0 else (f"{float(s.improvement):.1f}%" if s.improvement else "N/A")
-            lines.append(f"  #{i} {name} ({sport}, {level}) — Score: {score}, Improvement: {imp}")
+            rating = f"{float(s.current_rating):.1f}" if s.current_rating else "N/A"
+            chg = f"+{float(s.rating_change):.1f}" if s.rating_change and s.rating_change > 0 else (f"{float(s.rating_change):.1f}" if s.rating_change else "N/A")
+            lines.append(f"  #{i} {name} ({sport}, {level}) — Rating: {rating}, Change: {chg}")
 
     # Recent assessments
     recent = (

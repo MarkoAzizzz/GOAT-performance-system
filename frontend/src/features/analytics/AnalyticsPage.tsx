@@ -168,9 +168,9 @@ export function AnalyticsPage() {
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <StatCard label="Avg Score"    value={`${d?.average_score ?? 0}%`}    icon={Target}       accent />
-              <StatCard label="Peak Score"   value={`${d?.highest_score ?? 0}%`}    icon={Award} />
-              <StatCard label="Lowest Score" value={`${d?.lowest_score ?? 0}%`}     icon={BarChart2} />
+              <StatCard label="Avg Rating"    value={d?.average_rating ?? 0}    icon={Target}       accent />
+              <StatCard label="Peak Rating"   value={d?.highest_rating ?? 0}    icon={Award} />
+              <StatCard label="Lowest Rating" value={d?.lowest_rating ?? 0}     icon={BarChart2} />
               <StatCard label="This Week"    value={d?.weekly_assessments ?? 0}      icon={BarChartIcon} sub="sessions" />
             </div>
           )}
@@ -308,9 +308,9 @@ export function AnalyticsPage() {
 
                         <div className="grid grid-cols-3 gap-3 text-center">
                           {[
-                            { label: 'Avg Score', value: `${s.average_score}%` },
-                            { label: 'Highest',   value: `${s.highest_score}%` },
-                            { label: 'Lowest',    value: `${s.lowest_score}%`  },
+                            { label: 'Avg Rating', value: s.average_rating },
+                            { label: 'Highest',    value: s.highest_rating },
+                            { label: 'Lowest',     value: s.lowest_rating  },
                           ].map(c => (
                             <div key={c.label}>
                               <p className="font-display text-off-white text-lg">{c.value}</p>
@@ -342,18 +342,18 @@ export function AnalyticsPage() {
               </div>
 
               <Card>
-                <CardTitle title="Score Comparison — Boxing vs Kickboxing" />
+                <CardTitle title="Rating Comparison — Boxing vs Kickboxing" />
                 <ResponsiveContainer width="100%" height={220}>
                   <BarChart
                     data={[
-                      { metric: 'Avg Score', boxing: sports.find((s: any) => s.sport==='boxing')?.average_score ?? 0, kickboxing: sports.find((s: any) => s.sport==='kickboxing')?.average_score ?? 0 },
-                      { metric: 'Highest',   boxing: sports.find((s: any) => s.sport==='boxing')?.highest_score ?? 0, kickboxing: sports.find((s: any) => s.sport==='kickboxing')?.highest_score ?? 0 },
-                      { metric: 'Lowest',    boxing: sports.find((s: any) => s.sport==='boxing')?.lowest_score  ?? 0, kickboxing: sports.find((s: any) => s.sport==='kickboxing')?.lowest_score  ?? 0 },
+                      { metric: 'Avg Rating', boxing: sports.find((s: any) => s.sport==='boxing')?.average_rating ?? 0, kickboxing: sports.find((s: any) => s.sport==='kickboxing')?.average_rating ?? 0 },
+                      { metric: 'Highest',    boxing: sports.find((s: any) => s.sport==='boxing')?.highest_rating ?? 0, kickboxing: sports.find((s: any) => s.sport==='kickboxing')?.highest_rating ?? 0 },
+                      { metric: 'Lowest',     boxing: sports.find((s: any) => s.sport==='boxing')?.lowest_rating  ?? 0, kickboxing: sports.find((s: any) => s.sport==='kickboxing')?.lowest_rating  ?? 0 },
                     ]}
                     barSize={36} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke={C.grid} vertical={false} />
                     <XAxis dataKey="metric" tick={C.tick} tickLine={false} axisLine={false} />
-                    <YAxis domain={[0, 100]} tick={C.tick} tickLine={false} axisLine={false} />
+                    <YAxis domain={['dataMin - 50', 'dataMax + 50']} tick={C.tick} tickLine={false} axisLine={false} />
                     <Tooltip contentStyle={C.tooltip} labelStyle={C.label} cursor={{ fill: 'rgb(var(--c-overlay) / calc(0.025 * var(--c-ovl-mult)))' }} />
                     <Bar dataKey="boxing"    name="Boxing"    fill="var(--c-chart-blue)" fillOpacity={0.85} radius={[2,2,0,0]} />
                     <Bar dataKey="kickboxing" name="Kickboxing" fill="var(--c-chart-purple)" fillOpacity={0.85} radius={[2,2,0,0]} />
@@ -471,7 +471,7 @@ export function AnalyticsPage() {
                   <table className="w-full">
                     <thead>
                       <tr style={{ borderBottom: '1px solid rgb(var(--c-overlay) / calc(0.05 * var(--c-ovl-mult)))' }}>
-                        {['#','Student','Score','+Δ'].map(h => (
+                        {['#','Student','Rating','+Δ'].map(h => (
                           <th key={h} className={h === '#' || h === 'Student' ? 'text-left' : 'text-right'}
                             style={{ padding: '6px 8px 6px 0', color: 'rgb(var(--c-text-secondary) / calc(0.4 * var(--c-sec-mult)))', fontSize: '0.52rem', letterSpacing: '0.22em', textTransform: 'uppercase' }}>
                             {h}
@@ -487,9 +487,9 @@ export function AnalyticsPage() {
                             <p className="text-off-white text-xs">{p.student_name}</p>
                             <Badge variant={p.sport}>{p.sport}</Badge>
                           </td>
-                          <td className="text-right font-display text-off-white text-sm" style={{ padding: '10px 8px 10px 0' }}>{p.current_score}%</td>
+                          <td className="text-right font-display text-off-white text-sm" style={{ padding: '10px 8px 10px 0' }}>{Number(p.current_rating).toFixed(0)}</td>
                           <td className="text-right font-display text-base" style={{ padding: '10px 0', color: '#34d399' }}>
-                            {p.improvement != null ? `+${p.improvement}%` : '—'}
+                            {p.rating_change != null ? `+${Number(p.rating_change).toFixed(0)}` : '—'}
                           </td>
                         </tr>
                       ))}
@@ -499,14 +499,14 @@ export function AnalyticsPage() {
               </Card>
 
               <Card>
-                <CardTitle title="Highest Scores" />
-                {((topPerformers as any)?.by_score ?? []).length === 0 ? (
+                <CardTitle title="Highest Ratings" />
+                {((topPerformers as any)?.by_rating ?? []).length === 0 ? (
                   <p className="text-steel-gray/50 text-sm py-4">No data yet.</p>
                 ) : (
                   <table className="w-full">
                     <thead>
                       <tr style={{ borderBottom: '1px solid rgb(var(--c-overlay) / calc(0.05 * var(--c-ovl-mult)))' }}>
-                        {['#','Student','Level','Score'].map(h => (
+                        {['#','Student','Level','Rating'].map(h => (
                           <th key={h} className={h === '#' || h === 'Student' || h === 'Level' ? 'text-left' : 'text-right'}
                             style={{ padding: '6px 8px 6px 0', color: 'rgb(var(--c-text-secondary) / calc(0.4 * var(--c-sec-mult)))', fontSize: '0.52rem', letterSpacing: '0.22em', textTransform: 'uppercase' }}>
                             {h}
@@ -515,7 +515,7 @@ export function AnalyticsPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {((topPerformers as any)?.by_score ?? []).map((p: any, i: number) => (
+                      {((topPerformers as any)?.by_rating ?? []).map((p: any, i: number) => (
                         <tr key={p.student_id} style={{ borderBottom: '1px solid rgb(var(--c-overlay) / calc(0.04 * var(--c-ovl-mult)))' }}>
                           <td style={{ padding: '10px 8px 10px 0', color: 'rgb(var(--c-text-secondary) / calc(0.3 * var(--c-sec-mult)))', fontSize: '0.65rem', fontFamily: 'var(--font-display)' }}>{i + 1}</td>
                           <td style={{ padding: '10px 8px 10px 0' }}>
@@ -525,7 +525,7 @@ export function AnalyticsPage() {
                           <td style={{ padding: '10px 8px 10px 0' }}>
                             <Badge variant={p.level}>{p.level}</Badge>
                           </td>
-                          <td className="text-right font-display text-blood-red text-base" style={{ padding: '10px 0' }}>{p.current_score}%</td>
+                          <td className="text-right font-display text-blood-red text-base" style={{ padding: '10px 0' }}>{Number(p.current_rating).toFixed(0)}</td>
                         </tr>
                       ))}
                     </tbody>

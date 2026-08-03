@@ -7,7 +7,6 @@ import { Target, Award, TrendingUp, ClipboardList } from 'lucide-react'
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
-  BarChart, Bar,
 } from 'recharts'
 
 const CHART = {
@@ -17,8 +16,6 @@ const CHART = {
   tick: { fill: 'rgb(var(--c-text-secondary))', fontSize: 10 },
   grid: 'rgb(var(--c-overlay) / calc(0.04 * var(--c-ovl-mult)))',
 }
-
-const PILLAR_COLORS = ['#E11919', 'var(--c-chart-amber)', 'var(--c-chart-green)', 'var(--c-chart-blue)', 'var(--c-chart-purple)']
 
 const angularCard = {
   background: 'linear-gradient(145deg, rgb(var(--c-bg-elevated)) 0%, rgb(var(--c-bg-input)) 100%)',
@@ -63,35 +60,24 @@ export function StudentProgressPage() {
   })
 
   const prog = progress as any
-  const sessions = prog?.sessions ?? []
+  // API returns `history` oldest→newest
+  const sessions = prog?.history ?? []
 
-  const trendData = [...sessions].reverse().map((s: any) => ({
+  const trendData = [...sessions].map((s: any) => ({
     date: new Date(s.assessment_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-    score: s.grade_percentage,
+    rating: s.rating_after,
   }))
 
-  const latestPillar = sessions[0]?.pillar_scores ?? []
+  // latest_pillar_scores is the only per-assessment pillar breakdown the API
+  // exposes (for the most recent session) -- there's no per-session pillar
+  // history, so only the radar (latest snapshot) can be shown here, not a
+  // multi-session pillar trend.
+  const latestPillar = prog?.latest_pillar_scores ?? []
   const radarData = latestPillar.map((p: any) => ({
-    pillar: p.pillar_name?.replace('Physical ', '').replace(' Skills', '') ?? 'Unknown',
-    score: p.score ?? 0,
+    pillar: p.pillar__name?.replace('Physical ', '').replace(' Skills', '') ?? 'Unknown',
+    score: Number(p.score ?? 0) * 10,
     full: 100,
   }))
-
-  const last4 = [...sessions].reverse().slice(-4)
-  const pillarTrend = last4.map((s: any) => {
-    const entry: Record<string, any> = {
-      date: new Date(s.assessment_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-    }
-    s.pillar_scores?.forEach((p: any) => {
-      const key = p.pillar_name?.replace('Physical ', '').replace(' Skills', '') ?? 'Unknown'
-      entry[key] = p.score
-    })
-    return entry
-  })
-
-  const pillarNames = latestPillar.map((p: any) =>
-    p.pillar_name?.replace('Physical ', '').replace(' Skills', '') ?? 'Unknown'
-  )
 
   if (isLoading && myStudent) {
     return (
@@ -123,10 +109,10 @@ export function StudentProgressPage() {
 
       {/* Summary stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard label="Current Score" value={prog?.current_score != null ? `${prog.current_score}%` : '—'} icon={Target} accent />
-        <StatCard label="Best Score"    value={prog?.best_score    != null ? `${prog.best_score}%`    : '—'} icon={Award} />
-        <StatCard label="Improvement"   value={prog?.improvement   != null ? `${prog.improvement > 0 ? '+' : ''}${prog.improvement}%` : '—'} icon={TrendingUp} />
-        <StatCard label="Sessions"      value={prog?.total_sessions ?? 0}                                    icon={ClipboardList} sub="total" />
+        <StatCard label="Rating"         value={prog?.current_rating  != null ? Number(prog.current_rating).toFixed(0) : '—'} icon={Target} accent />
+        <StatCard label="Peak Rating"    value={prog?.highest_rating  != null ? Number(prog.highest_rating).toFixed(0) : '—'} icon={Award} />
+        <StatCard label="Rating Change"  value={prog?.rating_change   != null ? `${prog.rating_change > 0 ? '+' : ''}${Number(prog.rating_change).toFixed(0)}` : '—'} icon={TrendingUp} />
+        <StatCard label="Assessments"    value={prog?.total_assessments ?? 0}                                    icon={ClipboardList} sub="total" />
       </div>
 
       {sessions.length === 0 && (
@@ -141,18 +127,18 @@ export function StudentProgressPage() {
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
 
           <CardWrapper>
-            <SectionHeader title="Overall Score Trend" />
+            <SectionHeader title="Rating Trend" />
             <ResponsiveContainer width="100%" height={200}>
               <LineChart data={trendData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke={CHART.grid} />
                 <XAxis dataKey="date" tick={CHART.tick} tickLine={false} axisLine={false} />
-                <YAxis domain={[0, 100]} tick={CHART.tick} tickLine={false} axisLine={false} />
+                <YAxis domain={['dataMin - 30', 'dataMax + 30']} tick={CHART.tick} tickLine={false} axisLine={false} />
                 <Tooltip contentStyle={CHART.tooltip} itemStyle={CHART.item} labelStyle={CHART.label}
                   cursor={{ stroke: 'rgba(225,25,25,0.2)', strokeWidth: 1 }} />
-                <Line type="monotone" dataKey="score" stroke="#E11919" strokeWidth={2}
+                <Line type="monotone" dataKey="rating" stroke="#E11919" strokeWidth={2}
                   dot={{ fill: '#E11919', r: 3, strokeWidth: 0 }}
                   activeDot={{ r: 5, fill: '#E11919', stroke: 'rgba(225,25,25,0.3)', strokeWidth: 4 }}
-                  name="Score %" />
+                  name="Rating" />
               </LineChart>
             </ResponsiveContainer>
           </CardWrapper>
@@ -169,37 +155,6 @@ export function StudentProgressPage() {
                 </RadarChart>
               </ResponsiveContainer>
             </CardWrapper>
-          )}
-
-          {pillarTrend.length > 1 && pillarNames.length > 0 && (
-            <div className="relative overflow-hidden xl:col-span-2" style={angularCard}>
-              <div className="absolute top-0 left-0 right-0 h-px"
-                style={{ background: 'linear-gradient(to right, #E11919, rgba(225,25,25,0.2) 50%, transparent)' }} />
-              <div className="absolute top-0 left-0 bottom-0 w-px"
-                style={{ background: 'linear-gradient(to bottom, #E11919, transparent 60%)' }} />
-              <div className="p-6">
-                <SectionHeader title="Pillar Trend" />
-                <ResponsiveContainer width="100%" height={220}>
-                  <BarChart data={pillarTrend} barSize={12} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke={CHART.grid} vertical={false} />
-                    <XAxis dataKey="date" tick={CHART.tick} tickLine={false} axisLine={false} />
-                    <YAxis domain={[0, 100]} tick={CHART.tick} tickLine={false} axisLine={false} />
-                    <Tooltip contentStyle={CHART.tooltip} labelStyle={CHART.label} cursor={{ fill: 'rgb(var(--c-overlay) / calc(0.025 * var(--c-ovl-mult)))' }} />
-                    {pillarNames.map((name: string, i: number) => (
-                      <Bar key={name} dataKey={name} fill={PILLAR_COLORS[i % PILLAR_COLORS.length]} fillOpacity={0.85} radius={[2, 2, 0, 0]} />
-                    ))}
-                  </BarChart>
-                </ResponsiveContainer>
-                <div className="flex items-center gap-5 mt-4 justify-center flex-wrap">
-                  {pillarNames.map((name: string, i: number) => (
-                    <div key={name} className="flex items-center gap-1.5">
-                      <div className="w-2 h-2 rounded-sm" style={{ background: PILLAR_COLORS[i % PILLAR_COLORS.length] }} />
-                      <span style={{ color: 'rgb(var(--c-text-secondary) / calc(0.5 * var(--c-sec-mult)))', fontSize: '0.58rem', letterSpacing: '0.18em', textTransform: 'uppercase' }}>{name}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
           )}
         </div>
       )}

@@ -34,7 +34,8 @@ class AssessmentListSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'student', 'student_id', 'student_name', 'assessment_date',
             'martial_art', 'overall_score', 'grade_percentage',
-            'level_at_assessment', 'sessions_completed', 'created_at',
+            'level_at_assessment', 'rating_before', 'rating_after',
+            'sessions_completed', 'created_at',
         ]
 
 
@@ -50,6 +51,7 @@ class AssessmentDetailSerializer(serializers.ModelSerializer):
             'id', 'student_id', 'student_name', 'assessment_date',
             'martial_art', 'sessions_completed', 'overall_score',
             'grade_percentage', 'level_at_assessment',
+            'rating_before', 'rating_after',
             'coach_notes', 'action_plan',
             'pillar_scores', 'criterion_scores', 'created_at',
         ]

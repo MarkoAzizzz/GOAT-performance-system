@@ -36,17 +36,18 @@ function formatDate(dateStr: string) {
   return d.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
 }
 
-function ScoreBar({ pct }: { pct: number }) {
-  const color = pct >= 80 ? '#E11919' : pct >= 50 ? '#fbbf24' : '#34d399'
+function RatingCell({ rating, change }: { rating: number | null; change: number | null }) {
+  const color = change != null && change < 0 ? '#E11919' : '#34d399'
   return (
-    <div className="flex items-center gap-3 min-w-[120px]">
-      <div className="flex-1 h-1.5 rounded-none" style={{ background: 'rgb(var(--c-overlay) / calc(0.06 * var(--c-ovl-mult)))' }}>
-        <div className="h-1.5 transition-all duration-700"
-          style={{ width: `${pct}%`, background: `linear-gradient(to right, ${color}88, ${color})` }} />
-      </div>
-      <span className="font-display text-sm shrink-0" style={{ color, minWidth: 48, textAlign: 'right' }}>
-        {pct != null ? `${Number(pct).toFixed(1)}%` : '—'}
+    <div className="flex items-center gap-2 min-w-[120px] justify-end">
+      <span className="font-display text-sm shrink-0 text-off-white" style={{ minWidth: 44, textAlign: 'right' }}>
+        {rating != null ? Number(rating).toFixed(0) : '—'}
       </span>
+      {change != null && (
+        <span className="font-display" style={{ fontSize: '0.68rem', color }}>
+          {change > 0 ? '+' : ''}{Number(change).toFixed(0)}
+        </span>
+      )}
     </div>
   )
 }
@@ -72,16 +73,16 @@ export function AssessmentsPage() {
     list.filter((a: any) => new Date(a.assessment_date) >= weekAgo),
     [list]
   )
-  const weekAvg = useMemo(() => {
-    const valid = weekList.filter((a: any) => a.grade_percentage != null)
+  const weekAvgRating = useMemo(() => {
+    const valid = weekList.filter((a: any) => a.rating_after != null)
     if (!valid.length) return null
-    return valid.reduce((s: number, a: any) => s + Number(a.grade_percentage), 0) / valid.length
+    return valid.reduce((s: number, a: any) => s + Number(a.rating_after), 0) / valid.length
   }, [weekList])
 
   const topToday = useMemo(() => {
     if (!todayList.length) return null
     return todayList.reduce((best: any, a: any) =>
-      Number(a.grade_percentage) > Number(best.grade_percentage) ? a : best
+      Number(a.rating_after) > Number(best.rating_after) ? a : best
     )
   }, [todayList])
 
@@ -170,15 +171,15 @@ export function AssessmentsPage() {
           )}
           {statCard(
             <TrendingUp size={16} style={{ color: '#E11919' }} />,
-            'Avg Score — 7 days',
-            weekAvg != null ? <span style={{ color: weekAvg >= 80 ? '#E11919' : weekAvg >= 50 ? '#fbbf24' : '#34d399' }}>{weekAvg.toFixed(1)}%</span> : '—',
+            'Avg Rating — 7 days',
+            weekAvgRating != null ? <span style={{ color: '#E11919' }}>{weekAvgRating.toFixed(0)}</span> : '—',
             `${weekList.length} sessions this week`
           )}
           {statCard(
             <Award size={16} style={{ color: '#E11919' }} />,
-            "Today's Top Score",
+            "Today's Top Rating",
             topToday
-              ? <span style={{ color: LEVEL_COLOR[topToday.level_at_assessment] ?? '#E11919' }}>{Number(topToday.grade_percentage).toFixed(1)}%</span>
+              ? <span style={{ color: LEVEL_COLOR[topToday.level_at_assessment] ?? '#E11919' }}>{Number(topToday.rating_after).toFixed(0)}</span>
               : '—',
             topToday ? topToday.student_name ?? 'Unknown' : 'No assessments today'
           )}
@@ -268,9 +269,12 @@ export function AssessmentsPage() {
                       {a.martial_art}
                     </div>
 
-                    {/* Score bar */}
+                    {/* Rating */}
                     <div className="flex-1">
-                      <ScoreBar pct={Number(a.grade_percentage)} />
+                      <RatingCell
+                        rating={a.rating_after != null ? Number(a.rating_after) : null}
+                        change={a.rating_before != null && a.rating_after != null ? Number(a.rating_after) - Number(a.rating_before) : null}
+                      />
                     </div>
 
                     {/* Level */}

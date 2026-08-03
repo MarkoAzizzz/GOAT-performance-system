@@ -10,8 +10,33 @@ from .models import (
     CoachEntry, CoachCriterionScore,
     Criterion, Pillar,
 )
-from .engine import process_session
+from .engine import process_session, update_rating, assign_level_from_rating, RATING_START
 from leaderboard.services import refresh_student
+
+
+def recompute_ratings(student):
+    """
+    Recomputes rating_before/rating_after for every one of this student's
+    assessment sessions in chronological order, then syncs Student.rating
+    and Student.level to the result.
+
+    Runs the full history every time (not just the newest session) so that
+    editing an old assessment correctly ripples the rating change forward
+    through everything after it, rather than leaving the chain inconsistent.
+    """
+    sessions = list(AssessmentSession.objects.filter(student=student).order_by('assessment_date'))
+    rating = RATING_START
+    for i, session in enumerate(sessions):
+        session.rating_before = rating
+        if session.grade_percentage is not None:
+            rating = update_rating(rating, session.grade_percentage, i)
+        session.rating_after = rating
+        session.level_at_assessment = assign_level_from_rating(rating)
+        session.save(update_fields=['rating_before', 'rating_after', 'level_at_assessment'])
+
+    student.rating = rating
+    student.level = assign_level_from_rating(rating)
+    student.save(update_fields=['rating', 'level'])
 
 
 def recalculate(student, assessment_date):
@@ -98,8 +123,7 @@ def recalculate(student, assessment_date):
             if pr.score is not None:
                 PillarScore.objects.create(session=session, pillar=pillar, score=pr.score)
 
-    # Keep Student.level in sync with their latest assessment
-    student.level = result.level
-    student.save(update_fields=['level'])
+    # Recompute the student's open-ended rating chain and sync level to it
+    recompute_ratings(student)
 
     refresh_student(student)

@@ -97,9 +97,18 @@ function PastAssessmentView({ session, pillars }: { session: any; pillars: any[]
         style={{ background: 'rgba(225,25,25,0.05)', border: '1px solid rgba(225,25,25,0.18)', clipPath: 'polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px))' }}>
         <div className="absolute left-0 top-0 bottom-0 w-[3px]" style={{ background: 'linear-gradient(to bottom,#E11919,transparent)' }} />
         <div>
-          <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.4 * var(--c-sec-mult)))', fontSize: '0.48rem', letterSpacing: '0.24em', textTransform: 'uppercase', marginBottom: 4 }}>Final Score</p>
-          <p className="font-display text-blood-red" style={{ fontSize: '3rem', lineHeight: 1 }}>{session.grade_percentage}<span style={{ fontSize: '1.2rem' }}>%</span></p>
+          <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.4 * var(--c-sec-mult)))', fontSize: '0.48rem', letterSpacing: '0.24em', textTransform: 'uppercase', marginBottom: 4 }}>Rating</p>
+          <p className="font-display text-blood-red" style={{ fontSize: '3rem', lineHeight: 1 }}>{session.rating_after != null ? Number(session.rating_after).toFixed(0) : '—'}</p>
         </div>
+        {session.rating_before != null && session.rating_after != null && (
+          <div>
+            <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.4 * var(--c-sec-mult)))', fontSize: '0.48rem', letterSpacing: '0.24em', textTransform: 'uppercase', marginBottom: 6 }}>Change</p>
+            <span className="font-display text-sm" style={{ color: Number(session.rating_after) - Number(session.rating_before) >= 0 ? '#34d399' : '#E11919' }}>
+              {Number(session.rating_after) - Number(session.rating_before) >= 0 ? '+' : ''}
+              {(Number(session.rating_after) - Number(session.rating_before)).toFixed(0)}
+            </span>
+          </div>
+        )}
         <div>
           <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.4 * var(--c-sec-mult)))', fontSize: '0.48rem', letterSpacing: '0.24em', textTransform: 'uppercase', marginBottom: 6 }}>Level</p>
           <span className="font-display text-sm" style={{ color: LEVEL_COLOR[session.level_at_assessment] ?? 'rgb(var(--c-text-secondary))' }}>
@@ -107,8 +116,8 @@ function PastAssessmentView({ session, pillars }: { session: any; pillars: any[]
           </span>
         </div>
         <div>
-          <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.4 * var(--c-sec-mult)))', fontSize: '0.48rem', letterSpacing: '0.24em', textTransform: 'uppercase', marginBottom: 4 }}>Overall /10</p>
-          <p className="font-display text-off-white text-2xl">{session.overall_score}</p>
+          <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.4 * var(--c-sec-mult)))', fontSize: '0.48rem', letterSpacing: '0.24em', textTransform: 'uppercase', marginBottom: 4 }}>This Test — Grade</p>
+          <p className="font-display text-off-white text-2xl">{session.grade_percentage}%</p>
         </div>
       </div>
 
@@ -168,10 +177,10 @@ function PastAssessmentView({ session, pillars }: { session: any; pillars: any[]
               })}
               <tr style={{ background: 'rgba(225,25,25,0.08)', borderTop: '1px solid rgba(225,25,25,0.2)' }}>
                 <td colSpan={2} style={{ ...cell, height: 44, paddingLeft: 16 }}>
-                  <span className="font-display text-off-white" style={{ fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase' }}>Overall Score</span>
+                  <span className="font-display text-off-white" style={{ fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase' }}>Rating After</span>
                 </td>
                 <td style={{ ...cell, height: 44, textAlign: 'center' }}>
-                  <span className="font-display" style={{ color: '#E11919', fontSize: 18 }}>{session.grade_percentage}<span style={{ fontSize: 12 }}>%</span></span>
+                  <span className="font-display" style={{ color: '#E11919', fontSize: 18 }}>{session.rating_after != null ? Number(session.rating_after).toFixed(0) : '—'}</span>
                 </td>
               </tr>
             </tbody>
@@ -598,6 +607,10 @@ export function AssessmentEntryPage() {
           </div>
           <div className="ml-auto flex items-center gap-8">
             <div className="text-center">
+              <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.35 * var(--c-sec-mult)))', fontSize: '0.48rem', letterSpacing: '0.2em', textTransform: 'uppercase' }}>Rating</p>
+              <p className="text-off-white text-sm">{student.rating != null ? Number(student.rating).toFixed(0) : '—'}</p>
+            </div>
+            <div className="text-center">
               <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.35 * var(--c-sec-mult)))', fontSize: '0.48rem', letterSpacing: '0.2em', textTransform: 'uppercase' }}>Level</p>
               <p className="text-off-white text-sm capitalize">{student.level}</p>
             </div>
@@ -683,7 +696,7 @@ export function AssessmentEntryPage() {
                 }}>
                 {new Date(h.assessment_date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: '2-digit' })}
                 <span style={{ marginLeft: 6, color: historyIdx === i ? '#E11919' : 'rgb(var(--c-text-secondary) / calc(0.3 * var(--c-sec-mult)))', fontSize: '0.7rem' }}>
-                  {h.grade_percentage}%
+                  {h.rating_after != null ? Number(h.rating_after).toFixed(0) : '—'}
                 </span>
               </button>
             ))}
@@ -809,7 +822,7 @@ export function AssessmentEntryPage() {
                     })}
                     <tr style={{ background: 'rgba(225,25,25,0.08)', borderTop: '1px solid rgba(225,25,25,0.2)' }}>
                       <td colSpan={3} style={{ ...cell, height: 48, paddingLeft: 16 }}>
-                        <span className="font-display text-off-white" style={{ fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase' }}>Overall Score</span>
+                        <span className="font-display text-off-white" style={{ fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase' }}>This Test — Grade</span>
                       </td>
                       <td style={{ ...cell, height: 48, textAlign: 'center' }}>
                         {calc

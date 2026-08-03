@@ -23,18 +23,16 @@ class AdminSummaryView(APIView):
             assessment_date__gte=week_ago
         ).count()
 
-        score_stats = AssessmentSession.objects.filter(
-            overall_score__isnull=False
-        ).aggregate(
-            avg=Avg('grade_percentage'),
-            highest=Max('grade_percentage'),
-            lowest=Min('grade_percentage'),
+        rating_stats = Student.objects.filter(is_active=True).aggregate(
+            avg=Avg('rating'),
+            highest=Max('rating'),
+            lowest=Min('rating'),
         )
 
         biggest_improvement = (
             LeaderboardSnapshot.objects
-            .filter(improvement__isnull=False)
-            .order_by('-improvement')
+            .filter(rating_change__isnull=False)
+            .order_by('-rating_change')
             .select_related('student__user')
             .first()
         )
@@ -46,13 +44,13 @@ class AdminSummaryView(APIView):
             'total_students': total_students,
             'active_students': active_students,
             'weekly_assessments': weekly_assessments,
-            'average_score': round(score_stats['avg'] or 0, 2),
-            'highest_score': round(score_stats['highest'] or 0, 2),
-            'lowest_score': round(score_stats['lowest'] or 0, 2),
+            'average_rating': round(rating_stats['avg'] or 0, 1),
+            'highest_rating': round(rating_stats['highest'] or 0, 1),
+            'lowest_rating': round(rating_stats['lowest'] or 0, 1),
             'biggest_improvement': {
                 'student_name': biggest_improvement.student.full_name if biggest_improvement else None,
                 'student_id': biggest_improvement.student.student_id if biggest_improvement else None,
-                'improvement': float(biggest_improvement.improvement) if biggest_improvement else None,
+                'rating_change': float(biggest_improvement.rating_change) if biggest_improvement else None,
             },
             'grade_distribution': grade_distribution,
             'weekly_trend': weekly_trend,
@@ -67,12 +65,13 @@ class SportBreakdownView(APIView):
         result = []
         for sport in sports:
             students = Student.objects.filter(sport=sport)
-            sessions = AssessmentSession.objects.filter(student__sport=sport, grade_percentage__isnull=False)
-            stats = sessions.aggregate(
-                avg=Avg('grade_percentage'),
-                highest=Max('grade_percentage'),
-                lowest=Min('grade_percentage'),
-                total=Count('id'),
+            total_sessions = AssessmentSession.objects.filter(
+                student__sport=sport, grade_percentage__isnull=False
+            ).count()
+            rating_stats = students.filter(is_active=True).aggregate(
+                avg=Avg('rating'),
+                highest=Max('rating'),
+                lowest=Min('rating'),
             )
             level_dist = {}
             for lvl in ['beginner', 'intermediate', 'advanced']:
@@ -82,10 +81,10 @@ class SportBreakdownView(APIView):
                 'sport': sport,
                 'total_students': students.count(),
                 'active_students': students.filter(is_active=True).count(),
-                'total_sessions': stats['total'] or 0,
-                'average_score': round(stats['avg'] or 0, 2),
-                'highest_score': round(stats['highest'] or 0, 2),
-                'lowest_score': round(stats['lowest'] or 0, 2),
+                'total_sessions': total_sessions,
+                'average_rating': round(rating_stats['avg'] or 0, 1),
+                'highest_rating': round(rating_stats['highest'] or 0, 1),
+                'lowest_rating': round(rating_stats['lowest'] or 0, 1),
                 'level_distribution': level_dist,
             })
         return success_response(data=result)
@@ -134,28 +133,28 @@ class TopPerformersView(APIView):
         limit = int(request.query_params.get('limit', 10))
 
         qs = LeaderboardSnapshot.objects.filter(
-            current_score__isnull=False
+            current_rating__isnull=False
         ).select_related('student__user')
 
         if sport:
             qs = qs.filter(student__sport=sport)
 
-        by_score = list(
-            qs.order_by('-current_score')[:limit]
+        by_rating = list(
+            qs.order_by('-current_rating')[:limit]
             .values(
                 'student__student_id', 'student__user__full_name',
                 'student__sport', 'student__level',
-                'current_score', 'improvement', 'total_assessments',
+                'current_rating', 'rating_change', 'total_assessments',
             )
         )
 
         by_improvement = list(
-            qs.filter(improvement__isnull=False)
-            .order_by('-improvement')[:limit]
+            qs.filter(rating_change__isnull=False)
+            .order_by('-rating_change')[:limit]
             .values(
                 'student__student_id', 'student__user__full_name',
                 'student__sport', 'student__level',
-                'current_score', 'improvement', 'total_assessments',
+                'current_rating', 'rating_change', 'total_assessments',
             )
         )
 
@@ -166,15 +165,15 @@ class TopPerformersView(APIView):
                     'student_name': r['student__user__full_name'],
                     'sport': r['student__sport'],
                     'level': r['student__level'],
-                    'current_score': float(r['current_score'] or 0),
-                    'improvement': float(r['improvement'] or 0) if r['improvement'] else None,
+                    'current_rating': float(r['current_rating'] or 0),
+                    'rating_change': float(r['rating_change'] or 0) if r['rating_change'] else None,
                     'total_assessments': r['total_assessments'],
                 }
                 for r in rows
             ]
 
         return success_response(data={
-            'by_score': fmt(by_score),
+            'by_rating': fmt(by_rating),
             'by_improvement': fmt(by_improvement),
         })
 

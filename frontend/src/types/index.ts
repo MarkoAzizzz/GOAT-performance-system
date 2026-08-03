@@ -20,6 +20,7 @@ export interface Student {
   email: string
   sport: Sport
   level: Level
+  rating: number
   branch: string
   joinDate: string
   isActive: boolean
@@ -59,22 +60,22 @@ export interface LeaderboardEntry {
   studentName: string
   sport: Sport
   level: Level
-  currentScore: number
-  previousScore: number | null
-  improvement: number | null
+  currentRating: number
+  previousRating: number | null
+  ratingChange: number | null
 }
 
 export interface AnalyticsSummary {
   total_students: number
   active_students: number
   weekly_assessments: number
-  average_score: number
-  highest_score: number
-  lowest_score: number
+  average_rating: number
+  highest_rating: number
+  lowest_rating: number
   biggest_improvement: {
     student_name: string | null
     student_id: string | null
-    improvement: number | null
+    rating_change: number | null
   }
   grade_distribution: {
     beginner?: number

@@ -21,18 +21,18 @@ class LeaderboardSnapshot(models.Model):
         AssessmentSession, on_delete=models.SET_NULL, null=True, related_name='+',
         help_text='Session before latest, used to calculate improvement.'
     )
-    current_score = models.DecimalField(max_digits=5, decimal_places=2, null=True)
-    previous_score = models.DecimalField(max_digits=5, decimal_places=2, null=True)
-    improvement = models.DecimalField(
-        max_digits=5, decimal_places=2, null=True,
-        help_text='current_score - previous_score. Primary leaderboard ranking field.'
+    current_rating = models.DecimalField(max_digits=6, decimal_places=1, null=True)
+    previous_rating = models.DecimalField(max_digits=6, decimal_places=1, null=True)
+    rating_change = models.DecimalField(
+        max_digits=6, decimal_places=1, null=True,
+        help_text='current_rating - previous_rating. Ranking tiebreaker.'
     )
     total_assessments = models.PositiveSmallIntegerField(default=0)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = 'leaderboard_snapshots'
-        ordering = ['-improvement', '-current_score']
+        ordering = ['-current_rating', '-rating_change']
 
     def __str__(self):
-        return f'{self.student.student_id} — improvement: {self.improvement}'
+        return f'{self.student.student_id} — rating: {self.current_rating}'
