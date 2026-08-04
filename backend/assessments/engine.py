@@ -36,8 +36,8 @@ PROVISIONAL_ASSESSMENTS = 5
 # Rating bands — no upper bound on the top tier, and more tiers can be added
 # above 'advanced' later without this function needing a ceiling.
 RATING_LEVEL_THRESHOLDS = [
-    (Decimal('1300'), 'advanced'),
-    (Decimal('900'),  'intermediate'),
+    (Decimal('1100'), 'advanced'),
+    (Decimal('1000'), 'intermediate'),
     (Decimal('0'),    'beginner'),
 ]
 
