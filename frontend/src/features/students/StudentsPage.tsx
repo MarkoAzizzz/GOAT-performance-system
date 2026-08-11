@@ -8,7 +8,7 @@ import { studentsService } from '../../services/students.service'
 import { Badge } from '../../components/ui/Badge'
 import { LoadingSkeleton } from '../../components/ui/LoadingSkeleton'
 import { useToast } from '../../components/ui/Toast'
-import type { Sport, Level } from '../../types'
+import type { Sport } from '../../types'
 import { Search, Plus, X, Users } from 'lucide-react'
 
 const createSchema = z.object({
@@ -42,12 +42,11 @@ export function StudentsPage() {
   const { toast } = useToast()
   const [search, setSearch]     = useState('')
   const [sport,  setSport]      = useState<Sport | ''>('')
-  const [level,  setLevel]      = useState<Level | ''>('')
   const [showModal, setShowModal] = useState(false)
 
   const { data, isLoading } = useQuery({
-    queryKey: ['students', search, sport, level],
-    queryFn:  () => studentsService.list({ search: search || undefined, sport: (sport as Sport) || undefined, level: (level as Level) || undefined }),
+    queryKey: ['students', search, sport],
+    queryFn:  () => studentsService.list({ search: search || undefined, sport: (sport as Sport) || undefined }),
   })
   const { data: branches } = useQuery({ queryKey: ['branches'], queryFn: studentsService.getBranches })
 
@@ -119,17 +118,6 @@ export function StudentsPage() {
             {v || 'All Sports'}
           </button>
         ))}
-        {(['', 'beginner', 'intermediate', 'advanced'] as const).map(v => (
-          <button key={v} onClick={() => setLevel(v as Level | '')}
-            style={{
-              ...filterStyle,
-              color: level === v ? 'rgb(var(--c-text-primary))' : 'rgb(var(--c-text-secondary) / calc(0.5 * var(--c-sec-mult)))',
-              borderColor: level === v ? 'rgba(225,25,25,0.4)' : 'rgb(var(--c-overlay) / calc(0.07 * var(--c-ovl-mult)))',
-              background: level === v ? 'rgba(225,25,25,0.08)' : 'rgb(var(--c-bg-surface))',
-            }}>
-            {v || 'All Levels'}
-          </button>
-        ))}
       </div>
 
       {/* Table */}
@@ -157,7 +145,7 @@ export function StudentsPage() {
             <table className="w-full">
               <thead>
                 <tr style={{ borderBottom: '1px solid rgb(var(--c-overlay) / calc(0.05 * var(--c-ovl-mult)))' }}>
-                  {['ID', 'Name', 'Sport', 'Level', 'Branch', 'Status'].map(h => (
+                  {['ID', 'Name', 'Sport', 'Branch', 'Status'].map(h => (
                     <th key={h} className="text-left"
                       style={{ padding: '14px 20px', color: 'rgb(var(--c-text-secondary) / calc(0.4 * var(--c-sec-mult)))', fontSize: '0.52rem', letterSpacing: '0.26em', textTransform: 'uppercase' }}>
                       {h}
@@ -181,9 +169,6 @@ export function StudentsPage() {
                     </td>
                     <td style={{ padding: '14px 20px' }}>
                       <Badge variant={s.sport}>{s.sport}</Badge>
-                    </td>
-                    <td style={{ padding: '14px 20px' }}>
-                      <Badge variant={s.level}>{s.level}</Badge>
                     </td>
                     <td style={{ padding: '14px 20px' }}>
                       <span style={{ color: 'rgb(var(--c-text-secondary) / calc(0.5 * var(--c-sec-mult)))', fontSize: '0.75rem' }}>{s.branch?.name ?? '—'}</span>

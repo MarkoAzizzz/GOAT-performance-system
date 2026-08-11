@@ -52,7 +52,6 @@ def make_session(student, template, date=None, score=70.0):
         assessment_date=date or datetime.date(2026, 6, 1),
         overall_score=score,
         grade_percentage=score,
-        level_at_assessment='beginner',
         martial_art=student.sport,
     )
 

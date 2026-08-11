@@ -171,7 +171,6 @@ export function StudentLeaderboardPage() {
 
                 <div className="hidden sm:flex gap-2 shrink-0">
                   <Badge variant={entry.sport as any}>{entry.sport}</Badge>
-                  <Badge variant={entry.level as any}>{entry.level}</Badge>
                 </div>
 
                 <div className="text-right shrink-0 min-w-14">

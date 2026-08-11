@@ -10,7 +10,7 @@ from .models import (
     CoachEntry, CoachCriterionScore,
     Criterion, Pillar,
 )
-from .engine import process_session, update_rating, assign_level_from_rating, RATING_START
+from .engine import process_session, update_rating, RATING_START
 from leaderboard.services import refresh_student
 
 
@@ -18,7 +18,7 @@ def recompute_ratings(student):
     """
     Recomputes rating_before/rating_after for every one of this student's
     assessment sessions in chronological order, then syncs Student.rating
-    and Student.level to the result.
+    to the result.
 
     Runs the full history every time (not just the newest session) so that
     editing an old assessment correctly ripples the rating change forward
@@ -31,12 +31,10 @@ def recompute_ratings(student):
         if session.grade_percentage is not None:
             rating = update_rating(rating, session.grade_percentage, i)
         session.rating_after = rating
-        session.level_at_assessment = assign_level_from_rating(rating)
-        session.save(update_fields=['rating_before', 'rating_after', 'level_at_assessment'])
+        session.save(update_fields=['rating_before', 'rating_after'])
 
     student.rating = rating
-    student.level = assign_level_from_rating(rating)
-    student.save(update_fields=['rating', 'level'])
+    student.save(update_fields=['rating'])
 
 
 def recalculate(student, assessment_date):
@@ -98,7 +96,6 @@ def recalculate(student, assessment_date):
         )
         session.overall_score = result.overall_score
         session.grade_percentage = result.grade_percentage
-        session.level_at_assessment = result.level
         session.coach_notes = combined_notes
         session.action_plan = combined_plan
         session.sessions_completed = avg_sessions

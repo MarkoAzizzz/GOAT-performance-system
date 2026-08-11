@@ -68,7 +68,6 @@ def refresh_all() -> None:
 
 def get_leaderboard(
     branch_id: str = None,
-    level: str = None,
     sport: str = None,
     limit: int = 50,
 ) -> list:
@@ -84,8 +83,6 @@ def get_leaderboard(
 
     if branch_id:
         qs = qs.filter(student__branch_id=branch_id)
-    if level:
-        qs = qs.filter(student__level=level)
     if sport:
         qs = qs.filter(student__sport=sport)
 

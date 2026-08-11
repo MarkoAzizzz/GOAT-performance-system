@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
-  BarChart, Bar, Cell, ResponsiveContainer,
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts'
 import { Users, TrendingUp, ClipboardList, Target, Award, BarChart2, Trophy } from 'lucide-react'
 import { analyticsService } from '../../services/analytics.service'
@@ -13,12 +12,6 @@ export function AdminDashboardPage() {
     queryKey: ['admin-summary'],
     queryFn: analyticsService.getSummary,
   })
-
-  const gradeData = data ? [
-    { name: 'Beginner',      value: data.grade_distribution?.beginner      ?? 0, fill: 'var(--c-chart-green)' },
-    { name: 'Intermediate',  value: data.grade_distribution?.intermediate   ?? 0, fill: 'var(--c-chart-amber)' },
-    { name: 'Advanced',      value: data.grade_distribution?.advanced       ?? 0, fill: '#E11919' },
-  ] : []
 
   const trend = data?.weekly_trend ?? []
 
@@ -124,7 +117,7 @@ export function AdminDashboardPage() {
       )}
 
       {/* ── Charts ──────────────────────────────────────── */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6">
 
         {/* Weekly trend */}
         <div className="relative overflow-hidden"
@@ -170,56 +163,6 @@ export function AdminDashboardPage() {
                 />
               </AreaChart>
             </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Level distribution */}
-        <div className="relative overflow-hidden"
-          style={{
-            background: 'linear-gradient(145deg, rgb(var(--c-bg-elevated)) 0%, rgb(var(--c-bg-input)) 100%)',
-            border: '1px solid rgb(var(--c-overlay) / calc(0.05 * var(--c-ovl-mult)))',
-            boxShadow: 'var(--c-card-shadow)',
-            clipPath: 'polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%)',
-          }}>
-          <div className="absolute top-0 left-0 right-0 h-px"
-            style={{ background: 'linear-gradient(to right, #E11919, rgba(225,25,25,0.2) 50%, transparent)' }} />
-          <div className="absolute top-0 left-0 bottom-0 w-px"
-            style={{ background: 'linear-gradient(to bottom, #E11919, transparent 60%)' }} />
-
-          <div className="p-6">
-            <div className="flex items-center gap-3 mb-5">
-              <div className="w-[3px] h-4 bg-blood-red" />
-              <h3 className="font-display text-off-white text-xs uppercase tracking-[0.22em]">
-                Level Distribution
-              </h3>
-            </div>
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={gradeData} barSize={44} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgb(var(--c-overlay) / calc(0.04 * var(--c-ovl-mult)))" vertical={false} />
-                <XAxis dataKey="name" tick={{ fill: 'rgb(var(--c-text-secondary))', fontSize: 11 }} tickLine={false} axisLine={false} />
-                <YAxis allowDecimals={false} tick={{ fill: 'rgb(var(--c-text-secondary))', fontSize: 10 }} tickLine={false} axisLine={false} />
-                <Tooltip
-                  contentStyle={{ background: 'rgb(var(--c-bg-elevated))', border: '1px solid rgba(225,25,25,0.2)', borderRadius: 0, fontSize: 12 }}
-                  labelStyle={{ color: 'rgb(var(--c-text-secondary))', fontSize: 11 }}
-                  cursor={{ fill: 'rgb(var(--c-overlay) / calc(0.025 * var(--c-ovl-mult)))' }}
-                />
-                <Bar dataKey="value" name="Students" radius={[2, 2, 0, 0]}>
-                  {gradeData.map((entry, i) => (
-                    <Cell key={i} fill={entry.fill} opacity={0.9} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-
-            {/* Legend */}
-            <div className="flex items-center gap-5 mt-4 justify-center">
-              {gradeData.map(({ name, fill }) => (
-                <div key={name} className="flex items-center gap-1.5">
-                  <div className="w-2 h-2 rounded-sm" style={{ background: fill }} />
-                  <span style={{ color: 'rgb(var(--c-text-secondary) / calc(0.5 * var(--c-sec-mult)))', fontSize: '0.58rem', letterSpacing: '0.18em', textTransform: 'uppercase' }}>{name}</span>
-                </div>
-              ))}
-            </div>
           </div>
         </div>
       </div>

@@ -20,12 +20,6 @@ const C = {
   grid:    'rgb(var(--c-overlay) / calc(0.04 * var(--c-ovl-mult)))',
 }
 
-const LEVEL_COLOR: Record<string, string> = {
-  advanced:     '#E11919',
-  intermediate: '#fbbf24',
-  beginner:     '#34d399',
-}
-
 function Card({ children }: { children: React.ReactNode }) {
   return (
     <div className="relative overflow-hidden"
@@ -142,7 +136,6 @@ export function StudentDetailPage() {
 
   // history is oldest→newest from API; reverse for display (newest first)
   const history: any[] = prog?.history ? [...prog.history].reverse() : []
-  const latest = history[0]   // newest assessment
 
   // chart data: oldest→newest for the line chart
   const trendData = [...history].reverse().map((h: any) => ({
@@ -157,9 +150,6 @@ export function StudentDetailPage() {
   }))
 
   const initial = (s?.full_name ?? s?.user?.full_name ?? '?')[0].toUpperCase()
-
-  const levelKey = (latest?.level_at_assessment ?? s?.level ?? '').toLowerCase()
-  const levelColor = LEVEL_COLOR[levelKey] ?? 'rgb(var(--c-text-secondary))'
 
   return (
     <div className="space-y-8">
@@ -206,7 +196,6 @@ export function StudentDetailPage() {
             <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.45 * var(--c-sec-mult)))', fontSize: '0.72rem', marginBottom: 10 }}>{s?.email ?? s?.user?.email}</p>
             <div className="flex flex-wrap gap-2">
               <Badge variant={s?.sport}>{s?.sport}</Badge>
-              {latest && <Badge variant={latest.level_at_assessment as any}>{latest.level_at_assessment}</Badge>}
               <Badge variant={s?.is_active ? 'success' : 'error'}>{s?.is_active ? 'Active' : 'Inactive'}</Badge>
             </div>
           </div>
@@ -225,12 +214,6 @@ export function StudentDetailPage() {
                 {prog?.rating_change != null ? `${prog.rating_change > 0 ? '+' : ''}${Number(prog.rating_change).toFixed(0)}` : '—'}
               </p>
             </div>
-            {latest && (
-              <div className="text-right">
-                <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.45 * var(--c-sec-mult)))', fontSize: '0.52rem', letterSpacing: '0.26em', textTransform: 'uppercase', marginBottom: 4 }}>Level</p>
-                <p className="font-display text-lg capitalize" style={{ color: levelColor }}>{latest.level_at_assessment}</p>
-              </div>
-            )}
           </div>
 
           {/* Actions */}
@@ -324,7 +307,7 @@ export function StudentDetailPage() {
             <table className="w-full">
               <thead>
                 <tr style={{ borderBottom: '1px solid rgb(var(--c-overlay) / calc(0.05 * var(--c-ovl-mult)))' }}>
-                  {['#', 'Date', 'Rating', 'Level', 'Coach Notes', 'Action Plan', ''].map(h => (
+                  {['#', 'Date', 'Rating', 'Coach Notes', 'Action Plan', ''].map(h => (
                     <th key={h} className="text-left"
                       style={{ padding: '6px 16px 10px 0', color: 'rgb(var(--c-text-secondary) / calc(0.4 * var(--c-sec-mult)))', fontSize: '0.52rem', letterSpacing: '0.22em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
                       {h}
@@ -365,9 +348,6 @@ export function StudentDetailPage() {
                           {(Number(sess.rating_after) - Number(sess.rating_before)).toFixed(0)}
                         </span>
                       )}
-                    </td>
-                    <td style={{ padding: '12px 16px 12px 0' }}>
-                      <Badge variant={sess.level_at_assessment as any}>{sess.level_at_assessment}</Badge>
                     </td>
                     <td style={{ padding: '12px 16px 12px 0', color: 'rgb(var(--c-text-secondary) / calc(0.5 * var(--c-sec-mult)))', fontSize: '0.72rem', maxWidth: 200 }}>
                       {sess.coach_notes ? (

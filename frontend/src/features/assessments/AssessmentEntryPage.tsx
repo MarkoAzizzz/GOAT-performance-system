@@ -22,7 +22,7 @@ function calcOverall(scores: Record<string, string>, pillars: any[]) {
   const overall = avg(pillarAvgs)
   if (overall === null) return null
   const grade = overall * 10
-  return { overall, grade, level: grade >= 80 ? 'Advanced' : grade >= 50 ? 'Intermediate' : 'Beginner' }
+  return { overall, grade }
 }
 
 function clampScore(raw: string): string {
@@ -30,12 +30,6 @@ function clampScore(raw: string): string {
   const n = parseFloat(raw)
   if (isNaN(n)) return ''
   return String(Math.min(10, Math.max(0, n)))
-}
-
-const LEVEL_COLOR: Record<string, string> = {
-  Advanced: '#E11919',
-  Intermediate: '#fbbf24',
-  Beginner: '#34d399',
 }
 
 // ── styles ───────────────────────────────────────────────────────────────────
@@ -109,12 +103,6 @@ function PastAssessmentView({ session, pillars }: { session: any; pillars: any[]
             </span>
           </div>
         )}
-        <div>
-          <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.4 * var(--c-sec-mult)))', fontSize: '0.48rem', letterSpacing: '0.24em', textTransform: 'uppercase', marginBottom: 6 }}>Level</p>
-          <span className="font-display text-sm" style={{ color: LEVEL_COLOR[session.level_at_assessment] ?? 'rgb(var(--c-text-secondary))' }}>
-            {session.level_at_assessment}
-          </span>
-        </div>
         <div>
           <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.4 * var(--c-sec-mult)))', fontSize: '0.48rem', letterSpacing: '0.24em', textTransform: 'uppercase', marginBottom: 4 }}>This Test — Grade</p>
           <p className="font-display text-off-white text-2xl">{session.grade_percentage}%</p>
@@ -436,7 +424,6 @@ export function AssessmentEntryPage() {
               <>
                 <div className="h-3 w-px bg-overlay/10 ml-2" />
                 <span className="font-display text-blood-red text-sm">{calc.grade.toFixed(1)}%</span>
-                <span className="font-display text-xs" style={{ color: LEVEL_COLOR[calc.level] }}>{calc.level}</span>
               </>
             )}
             <div className="ml-auto flex items-center gap-2">
@@ -610,22 +597,12 @@ export function AssessmentEntryPage() {
               <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.35 * var(--c-sec-mult)))', fontSize: '0.48rem', letterSpacing: '0.2em', textTransform: 'uppercase' }}>Rating</p>
               <p className="text-off-white text-sm">{student.rating != null ? Number(student.rating).toFixed(0) : '—'}</p>
             </div>
-            <div className="text-center">
-              <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.35 * var(--c-sec-mult)))', fontSize: '0.48rem', letterSpacing: '0.2em', textTransform: 'uppercase' }}>Level</p>
-              <p className="text-off-white text-sm capitalize">{student.level}</p>
-            </div>
             {isCurrentEntry && (
               <div className="text-center">
                 <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.35 * var(--c-sec-mult)))', fontSize: '0.48rem', letterSpacing: '0.2em', textTransform: 'uppercase' }}>Live Grade</p>
                 <p className="font-display text-2xl" style={{ color: '#E11919', lineHeight: 1 }}>
                   {calc ? `${calc.grade.toFixed(1)}%` : '—'}
                 </p>
-              </div>
-            )}
-            {isCurrentEntry && calc && (
-              <div className="text-center">
-                <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.35 * var(--c-sec-mult)))', fontSize: '0.48rem', letterSpacing: '0.2em', textTransform: 'uppercase' }}>Projected</p>
-                <p className="font-display text-sm" style={{ color: LEVEL_COLOR[calc.level] }}>{calc.level}</p>
               </div>
             )}
             {/* Prev / Next in banner */}
@@ -824,13 +801,10 @@ export function AssessmentEntryPage() {
                       <td colSpan={3} style={{ ...cell, height: 48, paddingLeft: 16 }}>
                         <span className="font-display text-off-white" style={{ fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase' }}>This Test — Grade</span>
                       </td>
-                      <td style={{ ...cell, height: 48, textAlign: 'center' }}>
+                      <td colSpan={2} style={{ ...cell, height: 48, textAlign: 'center' }}>
                         {calc
                           ? <span className="font-display" style={{ color: '#E11919', fontSize: 18 }}>{calc.grade.toFixed(1)}<span style={{ fontSize: 12 }}>%</span></span>
                           : <span style={{ color: 'rgb(var(--c-text-secondary) / calc(0.2 * var(--c-sec-mult)))' }}>—</span>}
-                      </td>
-                      <td style={{ ...cell, height: 48 }}>
-                        {calc && <span className="font-display text-sm" style={{ color: LEVEL_COLOR[calc.level] }}>{calc.level}</span>}
                       </td>
                     </tr>
                   </tbody>

@@ -80,7 +80,6 @@ class AssessmentSession(models.Model):
     # Calculated by assessment engine — never set by UI
     overall_score = models.DecimalField(max_digits=4, decimal_places=2, null=True)
     grade_percentage = models.DecimalField(max_digits=5, decimal_places=2, null=True)
-    level_at_assessment = models.CharField(max_length=14, blank=True)
 
     # Open-ended rating snapshot — see assessments.engine.update_rating
     rating_before = models.DecimalField(max_digits=6, decimal_places=1, null=True)

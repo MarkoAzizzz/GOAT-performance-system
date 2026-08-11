@@ -3,7 +3,6 @@ import { useQuery } from '@tanstack/react-query'
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   BarChart, Bar, Cell, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
-  PieChart, Pie,
 } from 'recharts'
 import { analyticsService } from '../../services/analytics.service'
 import { StatCard } from '../../components/ui/StatCard'
@@ -19,9 +18,6 @@ const C = {
   grid:    'rgb(var(--c-overlay) / calc(0.04 * var(--c-ovl-mult)))',
 }
 
-const LEVEL_COLORS: Record<string, string> = {
-  beginner: 'var(--c-chart-green)', intermediate: 'var(--c-chart-amber)', advanced: '#E11919',
-}
 const PILLAR_COLORS = ['#E11919', 'var(--c-chart-amber)', 'var(--c-chart-green)', 'var(--c-chart-blue)', 'var(--c-chart-purple)']
 
 type Tab = 'overview' | 'sports' | 'pillars' | 'performers'
@@ -228,37 +224,6 @@ export function AnalyticsPage() {
                 </BarChart>
               </ResponsiveContainer>
             </Card>
-
-            <Card>
-              <CardTitle title="Level Distribution" />
-              <ResponsiveContainer width="100%" height={200}>
-                <PieChart>
-                  <Pie
-                    data={[
-                      { name: 'Beginner',     value: d?.grade_distribution?.beginner     ?? 0, fill: 'var(--c-chart-green)' },
-                      { name: 'Intermediate', value: d?.grade_distribution?.intermediate ?? 0, fill: 'var(--c-chart-amber)' },
-                      { name: 'Advanced',     value: d?.grade_distribution?.advanced     ?? 0, fill: '#E11919' },
-                    ]}
-                    dataKey="value" nameKey="name"
-                    cx="50%" cy="50%" outerRadius={80} innerRadius={46}
-                    strokeWidth={0}
-                  >
-                    {[
-                      { fill: 'var(--c-chart-green)' }, { fill: 'var(--c-chart-amber)' }, { fill: '#E11919' },
-                    ].map((e, i) => <Cell key={i} fill={e.fill} />)}
-                  </Pie>
-                  <Tooltip contentStyle={C.tooltip} />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="flex items-center gap-5 mt-2 justify-center">
-                {[['Beginner','var(--c-chart-green)'],['Intermediate','var(--c-chart-amber)'],['Advanced','#E11919']].map(([name, color]) => (
-                  <div key={name} className="flex items-center gap-1.5">
-                    <div className="w-2 h-2 rounded-sm" style={{ background: color }} />
-                    <span style={{ color: 'rgb(var(--c-text-secondary) / calc(0.5 * var(--c-sec-mult)))', fontSize: '0.58rem', letterSpacing: '0.18em', textTransform: 'uppercase' }}>{name}</span>
-                  </div>
-                ))}
-              </div>
-            </Card>
           </div>
         </div>
       )}
@@ -317,23 +282,6 @@ export function AnalyticsPage() {
                               <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.4 * var(--c-sec-mult)))', fontSize: '0.5rem', letterSpacing: '0.2em', textTransform: 'uppercase' }}>{c.label}</p>
                             </div>
                           ))}
-                        </div>
-
-                        <div className="space-y-2.5 pt-3" style={{ borderTop: '1px solid rgb(var(--c-overlay) / calc(0.05 * var(--c-ovl-mult)))' }}>
-                          {['beginner', 'intermediate', 'advanced'].map(lvl => {
-                            const count = s.level_distribution?.[lvl] ?? 0
-                            const pct = s.total_students > 0 ? (count / s.total_students) * 100 : 0
-                            return (
-                              <div key={lvl} className="flex items-center gap-3">
-                                <span style={{ color: 'rgb(var(--c-text-secondary) / calc(0.45 * var(--c-sec-mult)))', fontSize: '0.55rem', letterSpacing: '0.18em', textTransform: 'uppercase', width: 80 }}>{lvl}</span>
-                                <div className="flex-1 h-1 overflow-hidden" style={{ background: 'rgb(var(--c-overlay) / calc(0.05 * var(--c-ovl-mult)))' }}>
-                                  <div className="h-full transition-all duration-700"
-                                    style={{ width: `${pct}%`, background: LEVEL_COLORS[lvl] }} />
-                                </div>
-                                <span className="font-display text-off-white text-xs w-5 text-right">{count}</span>
-                              </div>
-                            )
-                          })}
                         </div>
                       </div>
                     </div>
@@ -506,8 +454,8 @@ export function AnalyticsPage() {
                   <table className="w-full">
                     <thead>
                       <tr style={{ borderBottom: '1px solid rgb(var(--c-overlay) / calc(0.05 * var(--c-ovl-mult)))' }}>
-                        {['#','Student','Level','Rating'].map(h => (
-                          <th key={h} className={h === '#' || h === 'Student' || h === 'Level' ? 'text-left' : 'text-right'}
+                        {['#','Student','Rating'].map(h => (
+                          <th key={h} className={h === '#' || h === 'Student' ? 'text-left' : 'text-right'}
                             style={{ padding: '6px 8px 6px 0', color: 'rgb(var(--c-text-secondary) / calc(0.4 * var(--c-sec-mult)))', fontSize: '0.52rem', letterSpacing: '0.22em', textTransform: 'uppercase' }}>
                             {h}
                           </th>
@@ -521,9 +469,6 @@ export function AnalyticsPage() {
                           <td style={{ padding: '10px 8px 10px 0' }}>
                             <p className="text-off-white text-xs">{p.student_name}</p>
                             <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.35 * var(--c-sec-mult)))', fontSize: '0.55rem', letterSpacing: '0.18em' }}>{p.student_id}</p>
-                          </td>
-                          <td style={{ padding: '10px 8px 10px 0' }}>
-                            <Badge variant={p.level}>{p.level}</Badge>
                           </td>
                           <td className="text-right font-display text-blood-red text-base" style={{ padding: '10px 0' }}>{Number(p.current_rating).toFixed(0)}</td>
                         </tr>

@@ -6,12 +6,6 @@ import { LoadingSkeleton } from '../../components/ui/LoadingSkeleton'
 import { ClipboardList, Plus, TrendingUp, Award, Calendar, ChevronRight } from 'lucide-react'
 import type { Sport } from '../../types'
 
-const LEVEL_COLOR: Record<string, string> = {
-  Advanced:     '#E11919',
-  Intermediate: '#fbbf24',
-  Beginner:     '#34d399',
-}
-
 const SPORT_COLOR: Record<string, string> = {
   boxing:     'rgba(225,25,25,0.15)',
   kickboxing: 'rgba(251,191,36,0.12)',
@@ -179,7 +173,7 @@ export function AssessmentsPage() {
             <Award size={16} style={{ color: '#E11919' }} />,
             "Today's Top Rating",
             topToday
-              ? <span style={{ color: LEVEL_COLOR[topToday.level_at_assessment] ?? '#E11919' }}>{Number(topToday.rating_after).toFixed(0)}</span>
+              ? <span style={{ color: '#E11919' }}>{Number(topToday.rating_after).toFixed(0)}</span>
               : '—',
             topToday ? topToday.student_name ?? 'Unknown' : 'No assessments today'
           )}
@@ -275,17 +269,6 @@ export function AssessmentsPage() {
                         rating={a.rating_after != null ? Number(a.rating_after) : null}
                         change={a.rating_before != null && a.rating_after != null ? Number(a.rating_after) - Number(a.rating_before) : null}
                       />
-                    </div>
-
-                    {/* Level */}
-                    <div className="shrink-0 px-3 py-1 font-display"
-                      style={{
-                        background: `${LEVEL_COLOR[a.level_at_assessment] ?? '#888'}18`,
-                        border: `1px solid ${LEVEL_COLOR[a.level_at_assessment] ?? '#888'}40`,
-                        color: LEVEL_COLOR[a.level_at_assessment] ?? '#888',
-                        fontSize: '0.52rem', letterSpacing: '0.18em', textTransform: 'uppercase', minWidth: 90, textAlign: 'center',
-                      }}>
-                      {a.level_at_assessment}
                     </div>
 
                     {/* Arrow */}

@@ -20,14 +20,14 @@ def make_branch():
 
 _student_counter = 0
 
-def make_student(branch, email, sport='boxing', level='beginner'):
+def make_student(branch, email, sport='boxing'):
     global _student_counter
     _student_counter += 1
     u = User(email=email, full_name=email.split('@')[0], role='student', is_active=True)
     u.set_password('Pass123!')
     u.save()
     return Student.objects.create(
-        user=u, branch=branch, sport=sport, level=level,
+        user=u, branch=branch, sport=sport,
         student_id=f'TEST-{_student_counter:03d}',
         join_date=datetime.date(2026, 1, 1), is_active=True,
     )
@@ -45,7 +45,7 @@ def make_session(student, template, score=70.0):
         student=student, template=template,
         assessment_date=datetime.date(2026, 6, 1),
         overall_score=score, grade_percentage=score,
-        level_at_assessment='beginner', martial_art=student.sport,
+        martial_art=student.sport,
     )
 
 

@@ -37,10 +37,6 @@ class StudentListView(APIView):
         if sport:
             qs = qs.filter(sport=sport)
 
-        level = request.query_params.get('level')
-        if level:
-            qs = qs.filter(level=level)
-
         is_active = request.query_params.get('is_active')
         if is_active is not None:
             qs = qs.filter(is_active=is_active.lower() == 'true')

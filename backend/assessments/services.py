@@ -77,12 +77,11 @@ def calculate_and_store(session: AssessmentSession) -> AssessmentSession:
         # Persist session-level calculated fields
         session.overall_score = result.overall_score
         session.grade_percentage = result.grade_percentage
-        session.level_at_assessment = result.level
-        session.save(update_fields=['overall_score', 'grade_percentage', 'level_at_assessment'])
+        session.save(update_fields=['overall_score', 'grade_percentage'])
 
         logger.info(
-            'Assessment calculated: session=%s score=%s grade=%s%% level=%s',
-            session.id, result.overall_score, result.grade_percentage, result.level,
+            'Assessment calculated: session=%s score=%s grade=%s%%',
+            session.id, result.overall_score, result.grade_percentage,
         )
 
     recompute_ratings(session.student)
@@ -102,7 +101,7 @@ def get_student_progress(student_id: str) -> dict:
         .filter(student_id=student_id, overall_score__isnull=False)
         .order_by('assessment_date')
         .values('id', 'assessment_date', 'overall_score', 'grade_percentage',
-                'level_at_assessment', 'coach_notes', 'action_plan', 'sessions_completed',
+                'coach_notes', 'action_plan', 'sessions_completed',
                 'rating_before', 'rating_after')
     )
 
@@ -137,7 +136,6 @@ def get_student_progress(student_id: str) -> dict:
         'lowest_rating': float(min(ratings)) if ratings else None,
         'average_rating': float(round(sum(ratings) / len(ratings), 1)) if ratings else None,
         'total_assessments': len(sessions),
-        'latest_level': latest['level_at_assessment'],
         'latest_pillar_scores': latest_pillar_scores,
         'history': sessions,
     }
@@ -151,7 +149,6 @@ def _empty_progress() -> dict:
         'lowest_rating': None,
         'average_rating': None,
         'total_assessments': 0,
-        'latest_level': None,
         'latest_pillar_scores': [],
         'history': [],
     }

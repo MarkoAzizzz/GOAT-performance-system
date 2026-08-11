@@ -113,7 +113,6 @@ export function StudentProfilePage() {
                 <span className="font-display text-blood-red text-sm">{myStudent.student_id}</span>
                 <span style={{ color: 'rgb(var(--c-text-secondary) / calc(0.3 * var(--c-sec-mult)))' }}>·</span>
                 <Badge variant={myStudent.sport}>{myStudent.sport}</Badge>
-                <Badge variant={myStudent.level}>{myStudent.level}</Badge>
               </div>
             )}
           </div>

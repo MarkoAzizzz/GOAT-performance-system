@@ -24,17 +24,11 @@ class Student(models.Model):
         BOXING = 'boxing', 'Boxing'
         KICKBOXING = 'kickboxing', 'Kickboxing'
 
-    class Level(models.TextChoices):
-        BEGINNER = 'beginner', 'Beginner'
-        INTERMEDIATE = 'intermediate', 'Intermediate'
-        ADVANCED = 'advanced', 'Advanced'
-
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     student_id = models.CharField(max_length=20, unique=True, db_index=True)
     user = models.OneToOneField(User, on_delete=models.PROTECT, related_name='student_profile')
     branch = models.ForeignKey(Branch, on_delete=models.PROTECT, related_name='students')
     sport = models.CharField(max_length=12, choices=Sport.choices)
-    level = models.CharField(max_length=14, choices=Level.choices, default=Level.BEGINNER)
     rating = models.DecimalField(
         max_digits=6, decimal_places=1, default=Decimal('1000'),
         help_text='Open-ended ELO-style rating. No fixed ceiling — see assessments.engine.',

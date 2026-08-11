@@ -39,7 +39,6 @@ def create_student(
             sport=sport,
             branch=branch,
             join_date=join_date,
-            level=Student.Level.BEGINNER,
         )
         logger.info('Student created: %s (%s)', student.student_id, email)
         return student

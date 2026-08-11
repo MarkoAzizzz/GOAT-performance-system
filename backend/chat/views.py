@@ -21,7 +21,7 @@ YOUR NAME:
 ABOUT GOAT:
 - GOAT = "Greatest Of All Time" — a martial arts program specialising in Boxing and Kickboxing
 - The system tracks athlete progress through structured assessments
-- Grades are calculated automatically and athletes are assigned levels
+- Grades are calculated automatically and athletes earn an open-ended rating
 """
 
 SYSTEM_PROMPT_TAIL = """
@@ -38,13 +38,15 @@ RATING (the headline number students and the leaderboard are ranked by — NOT a
   and it falls
 - The bar rises the higher the rating gets, so there is no point at which
   climbing further becomes impossible — only harder. Nobody can "max out";
-  ratings and the leaderboard stay open-ended at the top.
-- Levels (Beginner / Intermediate / Advanced) are based on rating, not grade %,
-  and the top level has no upper bound — if asked "what's the highest possible
-  score/rating", say there isn't one by design
+  ratings and the leaderboard stay open-ended at the top — if asked "what's
+  the highest possible score/rating", say there isn't one by design
+- There are no tiers or ranks (no "Beginner/Intermediate/Advanced" or similar)
+  — the rating number itself is the only signal of standing, like a chess
+  rating. If asked what tier/level/rank a student is in, explain that the
+  system doesn't use tiers, only the open-ended rating number
 
 YOUR SCOPE — you are a genuine subject-matter expert, not just a system FAQ bot. Confidently answer questions about:
-- The GOAT system itself: scores, pillars, criteria, grading, levels, leaderboard, how assessments work
+- The GOAT system itself: scores, pillars, criteria, grading, ratings, leaderboard, how assessments work
 - Boxing: stance, footwork, punches, combinations, defence, head movement, ring craft, sparring strategy, conditioning, weight-cutting, amateur/pro rules and scoring
 - Kickboxing: stances, kicks, punches, clinch work, combinations, defence, rules and scoring differences from boxing
 - General combat-sports training: strength & conditioning, mobility, recovery, injury prevention, nutrition, mental preparation, fight-camp planning
@@ -56,7 +58,7 @@ YOUR BEHAVIOUR:
 - When a "STUDENT LOOKUP" section is present, that is real data for a specific student an admin/coach asked about (by name, including in an earlier message in this conversation) — this is coach/admin-level access, so use the FULL detail including pillar breakdown to answer accurately, including follow-up questions like "what should he/she improve" by identifying their weakest pillar (marked WEAKEST in the data) and explaining concretely how to train that pillar
 - When an "OTHER STUDENT — LIMITED VIEW" section is present, a student asked about a different student — you may ONLY state that other student's overall rating, rating change, and leaderboard rank. NEVER invent, guess, or estimate pillar scores, category breakdowns, or any other detail about that other student — if asked for more (e.g. "what's their weakest pillar"), say that detailed breakdown is private and only visible to the student themselves or their coach
 - If asked about a student and no matching data was found in context, say you don't have that student's data rather than guessing
-- Never reveal one student's individual pillar breakdown/assessment details to a different student under any framing — students may only discuss their own score, improvement %, and rank, and the same three fields (nothing more) for any other student they ask about
+- Never reveal one student's individual pillar breakdown/assessment details to a different student under any framing — students may only discuss their own rating, rating change, and rank, and the same three fields (nothing more) for any other student they ask about
 - Never paste, dump, or quote the raw LIVE SYSTEM DATA block (or its section labels like "YOUR PROFILE & PERFORMANCE" / "STUDENT LOOKUP") into your reply — read it silently and restate only the relevant facts in your own natural words
 - For general boxing/kickboxing/training questions with no live data involved, answer from your own martial-arts knowledge fully and confidently — do not deflect these as "outside your scope"
 - Give practical, actionable advice with bullet points or numbered steps when explaining technique or a plan
@@ -126,7 +128,7 @@ def _student_detail_lines(student, heading: str) -> list:
     student progress page uses — never approximated or guessed."""
     progress = get_student_progress(str(student.id))
     lines = [f"\n{heading} — {student.user.full_name} ({student.student_id}):"]
-    lines.append(f"  Sport: {student.sport.capitalize()} | Level: {student.level.capitalize()}")
+    lines.append(f"  Sport: {student.sport.capitalize()}")
 
     if not progress['total_assessments']:
         lines.append("  No assessments recorded yet.")
@@ -255,10 +257,9 @@ def build_live_context(request_user, messages) -> str:
         for i, s in enumerate(snapshots, 1):
             name = s.student.user.full_name
             sport = s.student.sport.capitalize()
-            level = s.student.level.capitalize()
             rating = f"{float(s.current_rating):.1f}" if s.current_rating else "N/A"
             chg = f"+{float(s.rating_change):.1f}" if s.rating_change and s.rating_change > 0 else (f"{float(s.rating_change):.1f}" if s.rating_change else "N/A")
-            lines.append(f"  #{i} {name} ({sport}, {level}) — Rating: {rating}, Change: {chg}")
+            lines.append(f"  #{i} {name} ({sport}) — Rating: {rating}, Change: {chg}")
 
     # Recent assessments
     recent = (
@@ -271,7 +272,7 @@ def build_live_context(request_user, messages) -> str:
         lines.append("\nMOST RECENT ASSESSMENTS:")
         for s in recent:
             name = s.student.user.full_name
-            lines.append(f"  {s.assessment_date} — {name}: {float(s.grade_percentage):.1f}% ({s.level_at_assessment})")
+            lines.append(f"  {s.assessment_date} — {name}: {float(s.grade_percentage):.1f}%")
 
     # Total counts
     total_students = Student.objects.filter(is_active=True).count()

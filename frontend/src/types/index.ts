@@ -1,6 +1,5 @@
 export type Role = 'admin' | 'student'
 export type Sport = 'boxing' | 'kickboxing'
-export type Level = 'beginner' | 'intermediate' | 'advanced'
 export type MartialArt = 'boxing' | 'kickboxing'
 
 export interface User {
@@ -19,7 +18,6 @@ export interface Student {
   fullName: string
   email: string
   sport: Sport
-  level: Level
   rating: number
   branch: string
   joinDate: string
@@ -48,7 +46,6 @@ export interface Assessment {
   pillarScores: Record<string, number>
   overallScore: number
   gradePercentage: number
-  level: Level
   coachNotes: string
   actionPlan: string
   createdAt: string
@@ -59,7 +56,6 @@ export interface LeaderboardEntry {
   studentId: string
   studentName: string
   sport: Sport
-  level: Level
   currentRating: number
   previousRating: number | null
   ratingChange: number | null
@@ -76,11 +72,6 @@ export interface AnalyticsSummary {
     student_name: string | null
     student_id: string | null
     rating_change: number | null
-  }
-  grade_distribution: {
-    beginner?: number
-    intermediate?: number
-    advanced?: number
   }
   weekly_trend: {
     week: string

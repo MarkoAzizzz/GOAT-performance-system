@@ -1,4 +1,4 @@
-from django.db.models import Avg, Max, Min, Count, Q
+from django.db.models import Avg, Max, Min, Count
 from django.utils import timezone
 from datetime import timedelta
 from rest_framework.views import APIView
@@ -37,7 +37,6 @@ class AdminSummaryView(APIView):
             .first()
         )
 
-        grade_distribution = _grade_distribution()
         weekly_trend = _weekly_trend()
 
         return success_response(data={
@@ -52,7 +51,6 @@ class AdminSummaryView(APIView):
                 'student_id': biggest_improvement.student.student_id if biggest_improvement else None,
                 'rating_change': float(biggest_improvement.rating_change) if biggest_improvement else None,
             },
-            'grade_distribution': grade_distribution,
             'weekly_trend': weekly_trend,
         })
 
@@ -73,9 +71,6 @@ class SportBreakdownView(APIView):
                 highest=Max('rating'),
                 lowest=Min('rating'),
             )
-            level_dist = {}
-            for lvl in ['beginner', 'intermediate', 'advanced']:
-                level_dist[lvl] = students.filter(level=lvl).count()
 
             result.append({
                 'sport': sport,
@@ -85,7 +80,6 @@ class SportBreakdownView(APIView):
                 'average_rating': round(rating_stats['avg'] or 0, 1),
                 'highest_rating': round(rating_stats['highest'] or 0, 1),
                 'lowest_rating': round(rating_stats['lowest'] or 0, 1),
-                'level_distribution': level_dist,
             })
         return success_response(data=result)
 
@@ -143,7 +137,7 @@ class TopPerformersView(APIView):
             qs.order_by('-current_rating')[:limit]
             .values(
                 'student__student_id', 'student__user__full_name',
-                'student__sport', 'student__level',
+                'student__sport',
                 'current_rating', 'rating_change', 'total_assessments',
             )
         )
@@ -153,7 +147,7 @@ class TopPerformersView(APIView):
             .order_by('-rating_change')[:limit]
             .values(
                 'student__student_id', 'student__user__full_name',
-                'student__sport', 'student__level',
+                'student__sport',
                 'current_rating', 'rating_change', 'total_assessments',
             )
         )
@@ -164,7 +158,6 @@ class TopPerformersView(APIView):
                     'student_id': r['student__student_id'],
                     'student_name': r['student__user__full_name'],
                     'sport': r['student__sport'],
-                    'level': r['student__level'],
                     'current_rating': float(r['current_rating'] or 0),
                     'rating_change': float(r['rating_change'] or 0) if r['rating_change'] else None,
                     'total_assessments': r['total_assessments'],
@@ -198,13 +191,6 @@ class ScoreDistributionView(APIView):
                 'count': qs.filter(grade_percentage__gte=lo, grade_percentage__lte=hi).count(),
             })
         return success_response(data=result)
-
-
-def _grade_distribution():
-    sessions = AssessmentSession.objects.filter(
-        level_at_assessment__in=['beginner', 'intermediate', 'advanced']
-    ).values('level_at_assessment').annotate(count=Count('id'))
-    return {s['level_at_assessment']: s['count'] for s in sessions}
 
 
 def _weekly_trend():

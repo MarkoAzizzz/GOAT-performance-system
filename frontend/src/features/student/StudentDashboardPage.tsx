@@ -78,7 +78,6 @@ export function StudentDashboardPage() {
                 </span>
                 <span className="text-overlay/10">·</span>
                 <Badge variant={myStudent.sport}>{myStudent.sport}</Badge>
-                <Badge variant={myStudent.level}>{myStudent.level}</Badge>
               </>
             )}
           </div>
@@ -191,17 +190,13 @@ export function StudentDashboardPage() {
               </span>
             </div>
 
-            {/* Score + level */}
+            {/* Score */}
             <div className="flex items-center gap-6 mb-5 pb-5" style={{ borderBottom: '1px solid rgb(var(--c-overlay) / calc(0.05 * var(--c-ovl-mult)))' }}>
               <div>
                 <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.4 * var(--c-sec-mult)))', fontSize: '0.5rem', letterSpacing: '0.24em', textTransform: 'uppercase', marginBottom: 4 }}>Rating</p>
                 <p className="font-display text-blood-red" style={{ fontSize: '3.2rem', lineHeight: 1 }}>
                   {Number(latest.rating_after).toFixed(0)}
                 </p>
-              </div>
-              <div>
-                <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.4 * var(--c-sec-mult)))', fontSize: '0.5rem', letterSpacing: '0.24em', textTransform: 'uppercase', marginBottom: 6 }}>Level</p>
-                <Badge variant={latest.level_at_assessment as any}>{latest.level_at_assessment}</Badge>
               </div>
               {latest.sessions_completed > 0 && (
                 <div>

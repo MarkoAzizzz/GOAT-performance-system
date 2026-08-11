@@ -3,7 +3,6 @@ import { useState } from 'react'
 import { studentsService } from '../../services/students.service'
 import { assessmentsService } from '../../services/students.service'
 import { AssessmentScorecard } from '../assessments/AssessmentScorecard'
-import { Badge } from '../../components/ui/Badge'
 import { LoadingSkeleton } from '../../components/ui/LoadingSkeleton'
 import { ChevronDown, ChevronUp, ClipboardList } from 'lucide-react'
 
@@ -49,7 +48,6 @@ function HistoryRow({ s, isOpen, isLatest, rank, onToggle }: {
           <span className="text-steel-gray text-xs">
             {new Date(s.assessment_date).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}
           </span>
-          <Badge variant={s.level_at_assessment as any}>{s.level_at_assessment}</Badge>
           {isLatest && (
             <span style={{
               fontSize: '0.5rem', letterSpacing: '0.28em', textTransform: 'uppercase',

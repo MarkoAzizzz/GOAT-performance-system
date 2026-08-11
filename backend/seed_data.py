@@ -13,7 +13,6 @@ def _next_id():
         except: pass
     return f'GOAT-{(max(nums) + 1 if nums else 1):03d}'
 from assessments.models import AssessmentTemplate, Pillar, Criterion, AssessmentSession, PillarScore, CriterionScore
-from assessments.engine import assign_level
 from decimal import Decimal
 
 
@@ -38,21 +37,21 @@ for i, (pname, criteria) in enumerate(PILLAR_DATA):
     for j, cname in enumerate(criteria):
         Criterion.objects.get_or_create(pillar=pillar, order=j+1, defaults={'name': cname, 'is_sport_specific': False})
 
-# --- Students: (name, email, sport, level, start_score, end_score) ---
+# --- Students: (name, email, sport, start_score, end_score) ---
 STUDENTS = [
-    ('Ali Hassan',    'ali@goat.com',    'boxing',     'beginner',      40, 70),
-    ('Omar Khalid',   'omar@goat.com',   'boxing',     'intermediate',  55, 80),
-    ('Yusuf Nasser',  'yusuf@goat.com',  'kickboxing', 'beginner',      35, 65),
-    ('Karim Saad',    'karim@goat.com',  'kickboxing', 'advanced',      70, 92),
-    ('Tarek Mansour', 'tarek@goat.com',  'boxing',     'advanced',      65, 88),
-    ('Samir Fawzi',   'samir@goat.com',  'kickboxing', 'intermediate',  50, 78),
-    ('Nour Adel',     'nour@goat.com',   'boxing',     'beginner',      30, 62),
-    ('Ziad Ramadan',  'ziad@goat.com',   'kickboxing', 'intermediate',  58, 83),
-    ('Hassan Tawfik', 'hassan@goat.com', 'boxing',     'advanced',      72, 95),
-    ('Amr Eldin',     'amr@goat.com',    'kickboxing', 'beginner',      38, 68),
+    ('Ali Hassan',    'ali@goat.com',    'boxing',     40, 70),
+    ('Omar Khalid',   'omar@goat.com',   'boxing',     55, 80),
+    ('Yusuf Nasser',  'yusuf@goat.com',  'kickboxing', 35, 65),
+    ('Karim Saad',    'karim@goat.com',  'kickboxing', 70, 92),
+    ('Tarek Mansour', 'tarek@goat.com',  'boxing',     65, 88),
+    ('Samir Fawzi',   'samir@goat.com',  'kickboxing', 50, 78),
+    ('Nour Adel',     'nour@goat.com',   'boxing',     30, 62),
+    ('Ziad Ramadan',  'ziad@goat.com',   'kickboxing', 58, 83),
+    ('Hassan Tawfik', 'hassan@goat.com', 'boxing',     72, 95),
+    ('Amr Eldin',     'amr@goat.com',    'kickboxing', 38, 68),
 ]
 
-for full_name, email, sport, level, score_start, score_end in STUDENTS:
+for full_name, email, sport, score_start, score_end in STUDENTS:
     user, created = User.objects.get_or_create(email=email, defaults={
         'full_name': full_name, 'role': 'student', 'is_active': True
     })
@@ -68,7 +67,6 @@ for full_name, email, sport, level, score_start, score_end in STUDENTS:
             user=user,
             student_id=_next_id(),
             sport=sport,
-            level=level,
             branch=branch,
             join_date=date.today() - timedelta(days=random.randint(90, 500)),
             is_active=True,
@@ -93,7 +91,6 @@ for full_name, email, sport, level, score_start, score_end in STUDENTS:
             assessment_date=assess_date,
             grade_percentage=score,
             overall_score=round(score / 10, 2),
-            level_at_assessment=assign_level(Decimal(str(score))),
             coach_notes=f'Session {i+1} — {"Excellent progress" if score >= 70 else "Good effort, keep pushing"}',
             action_plan='Focus on defensive techniques and combination speed.',
         )

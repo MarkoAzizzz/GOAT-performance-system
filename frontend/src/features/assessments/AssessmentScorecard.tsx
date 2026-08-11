@@ -1,11 +1,5 @@
 import { Fragment, useMemo } from 'react'
 
-const LEVEL_COLOR: Record<string, string> = {
-  advanced:     '#E11919',
-  intermediate: '#fbbf24',
-  beginner:     '#34d399',
-}
-
 const cell: React.CSSProperties = {
   padding: '10px 12px',
   borderBottom: '1px solid rgb(var(--c-overlay) / calc(0.04 * var(--c-ovl-mult)))',
@@ -41,7 +35,6 @@ export function AssessmentScorecard({ session }: { session: any }) {
 
   if (!session) return null
 
-  const levelColor = LEVEL_COLOR[session.level_at_assessment] ?? 'rgb(var(--c-text-secondary))'
   const ratingChange = session.rating_before != null && session.rating_after != null
     ? Number(session.rating_after) - Number(session.rating_before)
     : null
@@ -66,10 +59,6 @@ export function AssessmentScorecard({ session }: { session: any }) {
             </span>
           </div>
         )}
-        <div>
-          <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.4 * var(--c-sec-mult)))', fontSize: '0.48rem', letterSpacing: '0.24em', textTransform: 'uppercase', marginBottom: 6 }}>Level</p>
-          <span className="font-display text-sm capitalize" style={{ color: levelColor }}>{session.level_at_assessment}</span>
-        </div>
       </div>
 
       {/* Full scorecard */}

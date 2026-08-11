@@ -20,7 +20,7 @@ class StudentSerializer(serializers.ModelSerializer):
         model = Student
         fields = [
             'id', 'student_id', 'full_name', 'email',
-            'sport', 'level', 'rating', 'branch', 'branch_name',
+            'sport', 'rating', 'branch', 'branch_name',
             'join_date', 'is_active', 'profile_photo',
             'created_at',
         ]
@@ -44,7 +44,7 @@ class CreateStudentSerializer(serializers.Serializer):
 class UpdateStudentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Student
-        fields = ['sport', 'level', 'branch', 'join_date', 'is_active', 'profile_photo']
+        fields = ['sport', 'branch', 'join_date', 'is_active', 'profile_photo']
 
 
 class ResetPasswordSerializer(serializers.Serializer):

@@ -12,13 +12,6 @@ from typing import Optional
 TWO_DP = Decimal('0.01')
 RATING_DP = Decimal('1')
 
-# Tier thresholds (grade %) — used for the per-session snapshot only.
-LEVEL_THRESHOLDS = [
-    (Decimal('80'), 'advanced'),
-    (Decimal('50'), 'intermediate'),
-    (Decimal('0'),  'beginner'),
-]
-
 # ── Rating system ────────────────────────────────────────────────────────────
 # Open-ended, ELO-style rating layered on top of the bounded per-session grade.
 # A student's rating implies an "expected" grade % via a saturating curve
@@ -32,14 +25,6 @@ RATING_SCALE = Decimal('250')        # higher = flatter curve = easier to keep c
 K_PROVISIONAL = Decimal('80')        # first few assessments: converge fast to a student's true level
 K_ESTABLISHED = Decimal('24')        # afterwards: smaller, steadier movements
 PROVISIONAL_ASSESSMENTS = 5
-
-# Rating bands — no upper bound on the top tier, and more tiers can be added
-# above 'advanced' later without this function needing a ceiling.
-RATING_LEVEL_THRESHOLDS = [
-    (Decimal('1100'), 'advanced'),
-    (Decimal('1000'), 'intermediate'),
-    (Decimal('0'),    'beginner'),
-]
 
 
 @dataclass(frozen=True)
@@ -63,7 +48,6 @@ class AssessmentResult:
     pillar_results: list
     overall_score: Optional[Decimal]
     grade_percentage: Optional[Decimal]
-    level: str
 
 
 def _round(value: Decimal) -> Decimal:
@@ -107,17 +91,6 @@ def update_rating(
     return _round_rating(current_rating + delta)
 
 
-def assign_level_from_rating(rating: Optional[Decimal]) -> str:
-    """Map rating to Beginner / Intermediate / Advanced — the student-facing
-    level, now open-ended at the top instead of grade-% capped."""
-    if rating is None:
-        return 'beginner'
-    for threshold, level in RATING_LEVEL_THRESHOLDS:
-        if rating >= threshold:
-            return level
-    return 'beginner'
-
-
 def effective_criterion_score(
     boxing: Optional[Decimal],
     kickboxing: Optional[Decimal],
@@ -153,16 +126,6 @@ def grade_percentage(score: Optional[Decimal]) -> Optional[Decimal]:
     if score is None:
         return None
     return _round((score / Decimal('10')) * Decimal('100'))
-
-
-def assign_level(percentage: Optional[Decimal]) -> str:
-    """Map grade % to Beginner / Intermediate / Advanced."""
-    if percentage is None:
-        return 'beginner'
-    for threshold, level in LEVEL_THRESHOLDS:
-        if percentage >= threshold:
-            return level
-    return 'beginner'
 
 
 def improvement(
@@ -218,11 +181,9 @@ def process_session(raw_criterion_scores: list[dict], pillars: list[dict]) -> As
 
     o_score = overall_score([pr.score for pr in pillar_results])
     g_pct = grade_percentage(o_score)
-    level = assign_level(g_pct)
 
     return AssessmentResult(
         pillar_results=pillar_results,
         overall_score=o_score,
         grade_percentage=g_pct,
-        level=level,
     )

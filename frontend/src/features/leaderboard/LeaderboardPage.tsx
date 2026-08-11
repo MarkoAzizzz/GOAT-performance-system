@@ -4,7 +4,7 @@ import { leaderboardService } from '../../services/analytics.service'
 import { Badge } from '../../components/ui/Badge'
 import { LoadingSkeleton } from '../../components/ui/LoadingSkeleton'
 import { Trophy } from 'lucide-react'
-import type { Sport, Level } from '../../types'
+import type { Sport } from '../../types'
 
 const MEDAL = [
   { icon: '#fbbf24', border: 'rgba(251,191,36,0.3)', bg: 'rgba(251,191,36,0.06)', text: '#fbbf24' },
@@ -21,11 +21,10 @@ const filterStyle = {
 
 export function LeaderboardPage() {
   const [sport, setSport] = useState<Sport | ''>('')
-  const [level, setLevel] = useState<Level | ''>('')
 
   const { data, isLoading } = useQuery({
-    queryKey: ['leaderboard', sport, level],
-    queryFn:  () => leaderboardService.get({ sport: (sport as Sport) || undefined, level: (level as Level) || undefined }),
+    queryKey: ['leaderboard', sport],
+    queryFn:  () => leaderboardService.get({ sport: (sport as Sport) || undefined }),
   })
 
   const entries = (data as any[]) ?? []
@@ -55,12 +54,6 @@ export function LeaderboardPage() {
             <button key={v} onClick={() => setSport(v as Sport | '')}
               style={{ ...filterStyle, color: sport===v ? 'rgb(var(--c-text-primary))' : 'rgb(var(--c-text-secondary) / calc(0.5 * var(--c-sec-mult)))', borderColor: sport===v ? 'rgba(225,25,25,0.4)' : 'rgb(var(--c-overlay) / calc(0.07 * var(--c-ovl-mult)))', background: sport===v ? 'rgba(225,25,25,0.08)' : 'rgb(var(--c-bg-surface))' }}>
               {v || 'All Sports'}
-            </button>
-          ))}
-          {(['', 'beginner', 'intermediate', 'advanced'] as const).map(v => (
-            <button key={v} onClick={() => setLevel(v as Level | '')}
-              style={{ ...filterStyle, color: level===v ? 'rgb(var(--c-text-primary))' : 'rgb(var(--c-text-secondary) / calc(0.5 * var(--c-sec-mult)))', borderColor: level===v ? 'rgba(225,25,25,0.4)' : 'rgb(var(--c-overlay) / calc(0.07 * var(--c-ovl-mult)))', background: level===v ? 'rgba(225,25,25,0.08)' : 'rgb(var(--c-bg-surface))' }}>
-              {v || 'All Levels'}
             </button>
           ))}
         </div>
@@ -125,7 +118,6 @@ export function LeaderboardPage() {
 
                 <div className="hidden sm:flex gap-2 shrink-0">
                   <Badge variant={entry.sport as any}>{entry.sport}</Badge>
-                  <Badge variant={entry.level as any}>{entry.level}</Badge>
                 </div>
 
                 <div className="text-right shrink-0 min-w-14">

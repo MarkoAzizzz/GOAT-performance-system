@@ -5,7 +5,6 @@ from assessments.engine import (
     pillar_score,
     overall_score,
     grade_percentage,
-    assign_level,
     improvement,
     process_session,
 )
@@ -83,25 +82,6 @@ class TestGradePercentage(TestCase):
         self.assertIsNone(grade_percentage(None))
 
 
-class TestAssignLevel(TestCase):
-    def test_advanced(self):
-        self.assertEqual(assign_level(D('80')), 'advanced')
-        self.assertEqual(assign_level(D('95')), 'advanced')
-        self.assertEqual(assign_level(D('100')), 'advanced')
-
-    def test_intermediate(self):
-        self.assertEqual(assign_level(D('50')), 'intermediate')
-        self.assertEqual(assign_level(D('65')), 'intermediate')
-        self.assertEqual(assign_level(D('79.99')), 'intermediate')
-
-    def test_beginner(self):
-        self.assertEqual(assign_level(D('0')), 'beginner')
-        self.assertEqual(assign_level(D('49.99')), 'beginner')
-
-    def test_none_defaults_beginner(self):
-        self.assertEqual(assign_level(None), 'beginner')
-
-
 class TestImprovement(TestCase):
     def test_positive(self):
         self.assertEqual(improvement(D('75'), D('60')), D('15.00'))
@@ -151,7 +131,6 @@ class TestProcessSession(TestCase):
 
         self.assertEqual(result.overall_score, D('10.00'))
         self.assertEqual(result.grade_percentage, D('100.00'))
-        self.assertEqual(result.level, 'advanced')
 
     def test_beginner_scores(self):
         pillars = self._make_pillars()
@@ -163,17 +142,6 @@ class TestProcessSession(TestCase):
 
         self.assertEqual(result.overall_score, D('3.00'))
         self.assertEqual(result.grade_percentage, D('30.00'))
-        self.assertEqual(result.level, 'beginner')
-
-    def test_intermediate_scores(self):
-        pillars = self._make_pillars()
-        raw = []
-        for p in pillars:
-            raw += self._make_scores(p['id'], [6, 6, 6, 6, 6])
-
-        result = process_session(raw, pillars)
-
-        self.assertEqual(result.level, 'intermediate')
 
     def test_mixed_boxing_kickboxing(self):
         pillar = {'id': 'p1', 'name': 'Technical'}

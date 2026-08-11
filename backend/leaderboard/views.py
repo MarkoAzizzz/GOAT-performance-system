@@ -11,7 +11,6 @@ class LeaderboardView(APIView):
     def get(self, request):
         entries = get_leaderboard(
             branch_id=request.query_params.get('branch'),
-            level=request.query_params.get('level'),
             sport=request.query_params.get('sport'),
         )
         return success_response(data=LeaderboardSerializer(entries, many=True).data)
