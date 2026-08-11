@@ -70,10 +70,6 @@ export function AssessmentScorecard({ session }: { session: any }) {
           <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.4 * var(--c-sec-mult)))', fontSize: '0.48rem', letterSpacing: '0.24em', textTransform: 'uppercase', marginBottom: 6 }}>Level</p>
           <span className="font-display text-sm capitalize" style={{ color: levelColor }}>{session.level_at_assessment}</span>
         </div>
-        <div>
-          <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.4 * var(--c-sec-mult)))', fontSize: '0.48rem', letterSpacing: '0.24em', textTransform: 'uppercase', marginBottom: 4 }}>This Test — Grade</p>
-          <p className="font-display text-off-white text-2xl">{session.grade_percentage != null ? `${session.grade_percentage}%` : '—'}</p>
-        </div>
       </div>
 
       {/* Full scorecard */}
