@@ -173,7 +173,7 @@ export function AnalyticsPage() {
 
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
             <Card>
-              <CardTitle title="Weekly Avg Score" />
+              <CardTitle title="Weekly Avg Net Points" />
               <ResponsiveContainer width="100%" height={220}>
                 <AreaChart data={trend} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
                   <defs>
@@ -184,11 +184,11 @@ export function AnalyticsPage() {
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke={C.grid} />
                   <XAxis dataKey="week" tick={C.tick} tickLine={false} axisLine={false} />
-                  <YAxis domain={[0, 100]} tick={C.tick} tickLine={false} axisLine={false} />
+                  <YAxis tick={C.tick} tickLine={false} axisLine={false} />
                   <Tooltip contentStyle={C.tooltip} labelStyle={C.label} itemStyle={C.item}
                     cursor={{ stroke: 'rgba(225,25,25,0.2)', strokeWidth: 1 }} />
-                  <Area type="monotone" dataKey="average_score" stroke="#E11919" strokeWidth={2}
-                    fill="url(#ag)" name="Avg %"
+                  <Area type="monotone" dataKey="average_net_delta" stroke="#E11919" strokeWidth={2}
+                    fill="url(#ag)" name="Avg Net Points"
                     dot={{ fill: '#E11919', r: 3, strokeWidth: 0 }}
                     activeDot={{ r: 5, fill: '#E11919', stroke: 'rgba(225,25,25,0.3)', strokeWidth: 4 }} />
                 </AreaChart>

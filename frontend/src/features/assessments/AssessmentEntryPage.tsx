@@ -5,31 +5,34 @@ import { studentsService } from '../../services/students.service'
 import { assessmentsService } from '../../services/students.service'
 import { assessmentEntryService } from '../../services/assessments.service'
 import { useToast } from '../../components/ui/Toast'
-import { ChevronDown, ChevronLeft, ChevronRight, Save, User, CheckCircle, AlertCircle, Users } from 'lucide-react'
+import { ChevronDown, ChevronLeft, ChevronRight, Save, User, CheckCircle, AlertCircle, Users, Minus, Plus } from 'lucide-react'
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
-function avg(vals: number[]): number | null {
-  const v = vals.filter(x => !isNaN(x) && x >= 0 && x <= 10)
-  return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null
+const DELTA_MIN = -3
+const DELTA_MAX = 3
+
+function clampDelta(v: number): number {
+  return Math.max(DELTA_MIN, Math.min(DELTA_MAX, v))
 }
 
-function calcOverall(scores: Record<string, string>, pillars: any[]) {
-  const pillarAvgs = pillars.map(p => {
-    const vals = p.criteria.map((c: any) => parseFloat(scores[c.id])).filter((v: number) => !isNaN(v))
-    return avg(vals)
-  }).filter(v => v !== null) as number[]
-  const overall = avg(pillarAvgs)
-  if (overall === null) return null
-  const grade = overall * 10
-  return { overall, grade }
+function calcNetDelta(scores: Record<string, number>, pillars: any[]) {
+  const pillarDeltas: Record<string, number> = {}
+  let netDelta = 0
+  for (const p of pillars) {
+    const sum = p.criteria.reduce((s: number, c: any) => s + (scores[c.id] ?? 0), 0)
+    pillarDeltas[p.id] = sum
+    netDelta += sum
+  }
+  return { pillarDeltas, netDelta }
 }
 
-function clampScore(raw: string): string {
-  if (raw === '' || raw === '-') return raw
-  const n = parseFloat(raw)
-  if (isNaN(n)) return ''
-  return String(Math.min(10, Math.max(0, n)))
+function deltaColor(v: number): string {
+  return v > 0 ? '#34d399' : v < 0 ? '#E11919' : 'rgb(var(--c-text-secondary))'
+}
+
+function fmtDelta(v: number, decimals = 1): string {
+  return `${v > 0 ? '+' : ''}${v.toFixed(decimals)}`
 }
 
 // ── styles ───────────────────────────────────────────────────────────────────
@@ -40,14 +43,9 @@ const cell: React.CSSProperties = {
   verticalAlign: 'middle', whiteSpace: 'nowrap',
 }
 
-const scoreInputStyle: React.CSSProperties = {
-  width: 68, height: 32,
-  background: 'rgba(225,25,25,0.06)',
-  border: '1px solid rgba(225,25,25,0.2)',
-  color: '#E11919',
-  fontFamily: 'var(--font-display)',
-  fontSize: 15, fontWeight: 700,
-  textAlign: 'center', outline: 'none',
+const eyebrow: React.CSSProperties = {
+  color: 'rgb(var(--c-text-secondary) / calc(0.4 * var(--c-sec-mult)))', fontSize: '0.48rem',
+  letterSpacing: '0.24em', textTransform: 'uppercase', marginBottom: 4,
 }
 
 const commentInputStyle: React.CSSProperties = {
@@ -67,11 +65,175 @@ const angularCard: React.CSSProperties = {
 
 const redLine = { background: 'linear-gradient(to right,#E11919,transparent)' }
 
+// ── Delta stepper ─────────────────────────────────────────────────────────────
+
+function DeltaStepper({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  const stepBtn: React.CSSProperties = {
+    width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center',
+    background: 'rgb(var(--c-overlay) / calc(0.05 * var(--c-ovl-mult)))',
+    border: '1px solid rgb(var(--c-overlay) / calc(0.1 * var(--c-ovl-mult)))',
+    color: 'rgb(var(--c-text-secondary))', cursor: 'pointer',
+  }
+  return (
+    <div className="flex items-center gap-1.5 justify-center">
+      <button type="button" onClick={() => onChange(clampDelta(value - 1))} disabled={value <= DELTA_MIN}
+        style={{ ...stepBtn, opacity: value <= DELTA_MIN ? 0.35 : 1 }}>
+        <Minus size={11} />
+      </button>
+      <span className="font-display" style={{ width: 28, textAlign: 'center', fontSize: 14, fontWeight: 700, color: deltaColor(value) }}>
+        {value > 0 ? `+${value}` : value}
+      </span>
+      <button type="button" onClick={() => onChange(clampDelta(value + 1))} disabled={value >= DELTA_MAX}
+        style={{ ...stepBtn, opacity: value >= DELTA_MAX ? 0.35 : 1 }}>
+        <Plus size={11} />
+      </button>
+    </div>
+  )
+}
+
 // ── Past assessment read-only view ───────────────────────────────────────────
 
 function PastAssessmentView({ session, pillars }: { session: any; pillars: any[] }) {
   if (!session) return null
 
+  const isPoints = session.net_delta != null
+
+  if (isPoints) {
+    const pillarMap: Record<string, any> = {}
+    for (const ps of session.pillar_scores ?? []) pillarMap[ps.pillar_name] = ps
+    const criterionMap: Record<string, any> = {}
+    for (const cs of session.criterion_scores ?? []) criterionMap[cs.criterion_name] = cs
+
+    const net = Number(session.net_delta)
+    let rowNum = 0
+
+    return (
+      <div className="space-y-5">
+        {/* Points banner */}
+        <div className="flex flex-wrap items-center gap-8 px-6 py-5 relative overflow-hidden"
+          style={{ background: 'rgba(225,25,25,0.05)', border: '1px solid rgba(225,25,25,0.18)', clipPath: 'polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px))' }}>
+          <div className="absolute left-0 top-0 bottom-0 w-[3px]" style={{ background: 'linear-gradient(to bottom,#E11919,transparent)' }} />
+          <div>
+            <p style={eyebrow}>Rating</p>
+            <p className="font-display text-blood-red" style={{ fontSize: '3rem', lineHeight: 1 }}>{session.rating_after != null ? Number(session.rating_after).toFixed(0) : '—'}</p>
+          </div>
+          {session.rating_before != null && session.rating_after != null && (
+            <div>
+              <p style={eyebrow}>Rating Change</p>
+              <span className="font-display text-sm" style={{ color: deltaColor(Number(session.rating_after) - Number(session.rating_before)) }}>
+                {fmtDelta(Number(session.rating_after) - Number(session.rating_before), 0)}
+              </span>
+            </div>
+          )}
+          <div>
+            <p style={eyebrow}>Net Points This Session</p>
+            <p className="font-display text-2xl" style={{ color: deltaColor(net) }}>{fmtDelta(net)}</p>
+          </div>
+        </div>
+
+        {/* Points table */}
+        <div className="relative overflow-hidden"
+          style={{ background: 'rgb(var(--c-bg-surface))', border: '1px solid rgb(var(--c-overlay) / calc(0.06 * var(--c-ovl-mult)))', clipPath: 'polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,0 100%)' }}>
+          <div className="absolute top-0 left-0 right-0 h-px" style={redLine} />
+          <div className="overflow-x-auto">
+            <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+              <colgroup>
+                <col style={{ width: 42 }} /><col style={{ width: 280 }} /><col style={{ width: 110 }} />
+              </colgroup>
+              <thead>
+                <tr style={{ borderBottom: '1px solid rgb(var(--c-overlay) / calc(0.06 * var(--c-ovl-mult)))' }}>
+                  {['#', 'Criterion', 'Δ Points'].map(h => (
+                    <th key={h} style={{ ...cell, height: 36, color: 'rgb(var(--c-text-secondary) / calc(0.35 * var(--c-sec-mult)))', fontSize: '0.5rem', letterSpacing: '0.24em', textTransform: 'uppercase', textAlign: h === 'Δ Points' ? 'center' : 'left', fontWeight: 400 }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {pillars.map((pillar: any, pi: number) => {
+                  const ps = pillarMap[pillar.name]
+                  return [
+                    <tr key={`ph-${pillar.id}`} style={{ background: 'rgba(225,25,25,0.055)', borderTop: pi > 0 ? '1px solid rgba(225,25,25,0.12)' : undefined, borderBottom: '1px solid rgba(225,25,25,0.08)' }}>
+                      <td colSpan={2} style={{ ...cell, height: 40, paddingLeft: 16 }}>
+                        <div className="flex items-center gap-3">
+                          <span style={{ color: '#E11919', fontFamily: 'var(--font-display)', fontSize: 11 }}>{String(pi + 1).padStart(2, '0')}</span>
+                          <span className="font-display text-off-white" style={{ fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase' }}>{pillar.name}</span>
+                        </div>
+                      </td>
+                      <td style={{ ...cell, height: 40, textAlign: 'center' }}>
+                        {ps ? (
+                          <div>
+                            <span className="font-display" style={{ color: deltaColor(Number(ps.delta)), fontSize: 14 }}>{fmtDelta(Number(ps.delta))}</span>
+                            {ps.standing_after != null && (
+                              <div style={{ color: 'rgb(var(--c-text-secondary) / calc(0.35 * var(--c-sec-mult)))', fontSize: '0.55rem', marginTop: 1 }}>
+                                standing: {Number(ps.standing_after).toFixed(1)}
+                              </div>
+                            )}
+                          </div>
+                        ) : <span style={{ color: 'rgb(var(--c-text-secondary) / calc(0.2 * var(--c-sec-mult)))', fontSize: 11 }}>—</span>}
+                      </td>
+                    </tr>,
+                    ...pillar.criteria.map((criterion: any) => {
+                      rowNum++
+                      const num = rowNum
+                      const cs = criterionMap[criterion.name]
+                      const delta = cs?.delta != null ? Number(cs.delta) : null
+                      return (
+                        <tr key={criterion.id}
+                          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgb(var(--c-overlay) / calc(0.018 * var(--c-ovl-mult)))' }}
+                          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = '' }}>
+                          <td style={{ ...cell, color: 'rgb(var(--c-text-secondary) / calc(0.2 * var(--c-sec-mult)))', fontSize: 11, fontFamily: 'var(--font-display)', textAlign: 'center' }}>{num}</td>
+                          <td style={{ ...cell, color: 'rgb(var(--c-text-primary) / 0.82)', fontSize: 13 }}>
+                            {criterion.name}
+                            {cs?.coach_comment && (
+                              <span className="block truncate" style={{ color: 'rgb(var(--c-text-secondary) / calc(0.4 * var(--c-sec-mult)))', fontSize: '0.62rem', marginTop: 2 }}>{cs.coach_comment}</span>
+                            )}
+                          </td>
+                          <td style={{ ...cell, textAlign: 'center' }}>
+                            {delta != null
+                              ? <span className="font-display" style={{ color: deltaColor(delta), fontSize: 15 }}>{fmtDelta(delta)}</span>
+                              : <span style={{ color: 'rgb(var(--c-text-secondary) / calc(0.15 * var(--c-sec-mult)))' }}>—</span>}
+                          </td>
+                        </tr>
+                      )
+                    }),
+                  ]
+                })}
+                <tr style={{ background: 'rgba(225,25,25,0.08)', borderTop: '1px solid rgba(225,25,25,0.2)' }}>
+                  <td colSpan={2} style={{ ...cell, height: 44, paddingLeft: 16 }}>
+                    <span className="font-display text-off-white" style={{ fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase' }}>Rating After</span>
+                  </td>
+                  <td style={{ ...cell, height: 44, textAlign: 'center' }}>
+                    <span className="font-display" style={{ color: '#E11919', fontSize: 18 }}>{session.rating_after != null ? Number(session.rating_after).toFixed(0) : '—'}</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Notes + Plan */}
+        {(session.coach_notes || session.action_plan) && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {session.coach_notes && (
+              <div className="p-4 relative overflow-hidden" style={{ ...angularCard }}>
+                <div className="absolute top-0 left-0 right-0 h-px" style={redLine} />
+                <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.4 * var(--c-sec-mult)))', fontSize: '0.5rem', letterSpacing: '0.26em', textTransform: 'uppercase', marginBottom: 8 }}>Coach Notes</p>
+                <p className="text-off-white/80 text-sm leading-relaxed">{session.coach_notes}</p>
+              </div>
+            )}
+            {session.action_plan && (
+              <div className="p-4 relative overflow-hidden" style={{ background: 'rgb(var(--c-bg-elevated))', border: '1px solid rgba(225,25,25,0.12)', clipPath: 'polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,0 100%)' }}>
+                <div className="absolute top-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(to right,rgba(225,25,25,0.5),transparent)' }} />
+                <p style={{ color: 'rgba(225,25,25,0.45)', fontSize: '0.5rem', letterSpacing: '0.26em', textTransform: 'uppercase', marginBottom: 8 }}>Action Plan / Goals</p>
+                <p className="text-off-white/75 text-sm leading-relaxed italic">{session.action_plan}</p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  // ── Legacy (pre-points, absolute 0-10 score) rendering — unchanged ──────────
   const criterionScores: Record<string, number | null> = {}
   for (const cs of session.criterion_scores ?? []) {
     criterionScores[cs.criterion_name] = cs.effective_score
@@ -91,12 +253,12 @@ function PastAssessmentView({ session, pillars }: { session: any; pillars: any[]
         style={{ background: 'rgba(225,25,25,0.05)', border: '1px solid rgba(225,25,25,0.18)', clipPath: 'polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px))' }}>
         <div className="absolute left-0 top-0 bottom-0 w-[3px]" style={{ background: 'linear-gradient(to bottom,#E11919,transparent)' }} />
         <div>
-          <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.4 * var(--c-sec-mult)))', fontSize: '0.48rem', letterSpacing: '0.24em', textTransform: 'uppercase', marginBottom: 4 }}>Rating</p>
+          <p style={eyebrow}>Rating</p>
           <p className="font-display text-blood-red" style={{ fontSize: '3rem', lineHeight: 1 }}>{session.rating_after != null ? Number(session.rating_after).toFixed(0) : '—'}</p>
         </div>
         {session.rating_before != null && session.rating_after != null && (
           <div>
-            <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.4 * var(--c-sec-mult)))', fontSize: '0.48rem', letterSpacing: '0.24em', textTransform: 'uppercase', marginBottom: 6 }}>Change</p>
+            <p style={eyebrow}>Change</p>
             <span className="font-display text-sm" style={{ color: Number(session.rating_after) - Number(session.rating_before) >= 0 ? '#34d399' : '#E11919' }}>
               {Number(session.rating_after) - Number(session.rating_before) >= 0 ? '+' : ''}
               {(Number(session.rating_after) - Number(session.rating_before)).toFixed(0)}
@@ -104,7 +266,7 @@ function PastAssessmentView({ session, pillars }: { session: any; pillars: any[]
           </div>
         )}
         <div>
-          <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.4 * var(--c-sec-mult)))', fontSize: '0.48rem', letterSpacing: '0.24em', textTransform: 'uppercase', marginBottom: 4 }}>This Test — Grade</p>
+          <p style={eyebrow}>This Test — Grade</p>
           <p className="font-display text-off-white text-2xl">{session.grade_percentage}%</p>
         </div>
       </div>
@@ -219,7 +381,7 @@ export function AssessmentEntryPage() {
   const [date] = useState(new Date().toISOString().split('T')[0])
   const [notes, setNotes] = useState('')
   const [plan, setPlan] = useState('')
-  const [scores, setScores] = useState<Record<string, string>>({})
+  const [scores, setScores] = useState<Record<string, number>>({})
   const [comments, setComments] = useState<Record<string, string>>({})
   const [submitted, setSubmitted] = useState(false)
 
@@ -278,10 +440,10 @@ export function AssessmentEntryPage() {
   useEffect(() => {
     if (!entries.length || !template) return
     const last = entries[entries.length - 1]
-    const s: Record<string, string> = {}
+    const s: Record<string, number> = {}
     const c: Record<string, string> = {}
     for (const x of last.scores ?? []) {
-      s[x.criterion_id] = x.score != null ? String(x.score) : ''
+      s[x.criterion_id] = x.delta != null ? Number(x.delta) : 0
       c[x.criterion_id] = x.comment ?? ''
     }
     setScores(s); setComments(c)
@@ -289,7 +451,7 @@ export function AssessmentEntryPage() {
   }, [entries, template])
 
   const pillars: any[] = template?.pillars ?? []
-  const calc = useMemo(() => calcOverall(scores, pillars), [scores, pillars])
+  const netCalc = useMemo(() => calcNetDelta(scores, pillars), [scores, pillars])
 
   // sorted student list
   const filteredStudents = useMemo(() => {
@@ -305,27 +467,14 @@ export function AssessmentEntryPage() {
     setSubmitted(false); setHistoryIdx(-1)
   }
 
-  function handleScoreChange(criterionId: string, raw: string) {
-    // Allow typing in progress (e.g. "1." or "0."), clamp on blur
-    if (raw === '' || raw === '.') { setScores(prev => ({ ...prev, [criterionId]: raw })); return }
-    const n = parseFloat(raw)
-    if (!isNaN(n) && n > 10) {
-      setScores(prev => ({ ...prev, [criterionId]: '10' })); return
-    }
-    setScores(prev => ({ ...prev, [criterionId]: raw }))
-  }
-
-  function handleScoreBlur(criterionId: string) {
-    setScores(prev => {
-      const clamped = clampScore(prev[criterionId] ?? '')
-      return { ...prev, [criterionId]: clamped }
-    })
+  function setCriterionDelta(criterionId: string, value: number) {
+    setScores(prev => ({ ...prev, [criterionId]: value }))
   }
 
   const submitMutation = useMutation({
     mutationFn: assessmentEntryService.submitEntry,
     onSuccess: () => {
-      toast('Assessment submitted — final score auto-calculated', 'success')
+      toast('Assessment submitted — points applied', 'success')
       setSubmitted(true)
       refetchEntries()
       // Invalidate student progress so the detail page refreshes automatically
@@ -345,12 +494,11 @@ export function AssessmentEntryPage() {
       assessment_date: date,
       sessions_completed: 0,
       notes, action_plan: plan,
-      scores: Object.entries(scores)
-        .filter(([, v]) => v !== '' && v !== '.')
-        .map(([criterion_id, score]) => ({
-          criterion_id, score: parseFloat(clampScore(score)),
-          comment: comments[criterion_id] ?? '',
-        })),
+      scores: pillars.flatMap((p: any) => p.criteria.map((c: any) => ({
+        criterion_id: c.id,
+        delta: scores[c.id] ?? 0,
+        comment: comments[c.id] ?? '',
+      }))),
     })
   }
 
@@ -420,10 +568,10 @@ export function AssessmentEntryPage() {
             </div>
             <span className="font-display text-off-white text-sm tracking-wide">{student.full_name}</span>
             <span style={{ color: 'rgb(var(--c-text-secondary) / calc(0.35 * var(--c-sec-mult)))', fontSize: '0.65rem' }}>{student.student_id} · {student.sport}</span>
-            {isCurrentEntry && calc && (
+            {isCurrentEntry && (
               <>
                 <div className="h-3 w-px bg-overlay/10 ml-2" />
-                <span className="font-display text-blood-red text-sm">{calc.grade.toFixed(1)}%</span>
+                <span className="font-display text-sm" style={{ color: deltaColor(netCalc.netDelta) }}>{fmtDelta(netCalc.netDelta)} pts</span>
               </>
             )}
             <div className="ml-auto flex items-center gap-2">
@@ -454,7 +602,7 @@ export function AssessmentEntryPage() {
           <div className="mt-2 flex items-center gap-3">
             <div className="h-[2px] w-10 bg-blood-red" />
             <span style={{ color: 'rgb(var(--c-text-secondary) / calc(0.38 * var(--c-sec-mult)))', fontSize: '0.58rem', letterSpacing: '0.28em', textTransform: 'uppercase' }}>
-              Score a student · all 25 criteria · system auto-calculates final grade
+              Score a student · all 25 criteria · nudge each up or down
             </span>
           </div>
         </div>
@@ -599,9 +747,9 @@ export function AssessmentEntryPage() {
             </div>
             {isCurrentEntry && (
               <div className="text-center">
-                <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.35 * var(--c-sec-mult)))', fontSize: '0.48rem', letterSpacing: '0.2em', textTransform: 'uppercase' }}>Live Grade</p>
-                <p className="font-display text-2xl" style={{ color: '#E11919', lineHeight: 1 }}>
-                  {calc ? `${calc.grade.toFixed(1)}%` : '—'}
+                <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.35 * var(--c-sec-mult)))', fontSize: '0.48rem', letterSpacing: '0.2em', textTransform: 'uppercase' }}>Net Points This Session</p>
+                <p className="font-display text-2xl" style={{ color: deltaColor(netCalc.netDelta), lineHeight: 1 }}>
+                  {fmtDelta(netCalc.netDelta)}
                 </p>
               </div>
             )}
@@ -730,20 +878,18 @@ export function AssessmentEntryPage() {
                 <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
                   <colgroup>
                     <col style={{ width: 42 }} /><col style={{ width: 220 }} /><col style={{ minWidth: 100 }} />
-                    <col style={{ width: 90 }} /><col style={{ minWidth: 200 }} />
+                    <col style={{ width: 130 }} /><col style={{ minWidth: 200 }} />
                   </colgroup>
                   <thead>
                     <tr style={{ borderBottom: '1px solid rgb(var(--c-overlay) / calc(0.06 * var(--c-ovl-mult)))' }}>
-                      {['#', 'Criterion', 'Pillar', 'Score /10', 'Comment'].map(h => (
-                        <th key={h} style={{ ...cell, height: 36, color: 'rgb(var(--c-text-secondary) / calc(0.35 * var(--c-sec-mult)))', fontSize: '0.5rem', letterSpacing: '0.24em', textTransform: 'uppercase', textAlign: h === 'Score /10' ? 'center' : 'left', fontWeight: 400 }}>{h}</th>
+                      {['#', 'Criterion', 'Pillar', 'Δ Points', 'Comment'].map(h => (
+                        <th key={h} style={{ ...cell, height: 36, color: 'rgb(var(--c-text-secondary) / calc(0.35 * var(--c-sec-mult)))', fontSize: '0.5rem', letterSpacing: '0.24em', textTransform: 'uppercase', textAlign: h === 'Δ Points' ? 'center' : 'left', fontWeight: 400 }}>{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
                     {pillars.map((pillar: any, pi: number) => {
-                      const criteriaIds = pillar.criteria.map((c: any) => c.id)
-                      const pillarVals = criteriaIds.map((id: string) => parseFloat(scores[id])).filter((v: number) => !isNaN(v) && v <= 10)
-                      const sectionAvg = avg(pillarVals)
+                      const pillarDelta = netCalc.pillarDeltas[pillar.id] ?? 0
                       return [
                         <tr key={`ph-${pillar.id}`} style={{ background: 'rgba(225,25,25,0.055)', borderTop: pi > 0 ? '1px solid rgba(225,25,25,0.12)' : undefined, borderBottom: '1px solid rgba(225,25,25,0.08)' }}>
                           <td colSpan={3} style={{ ...cell, height: 36, paddingLeft: 16 }}>
@@ -753,12 +899,10 @@ export function AssessmentEntryPage() {
                             </div>
                           </td>
                           <td style={{ ...cell, height: 36, textAlign: 'center' }}>
-                            {sectionAvg !== null
-                              ? <span className="font-display" style={{ color: '#E11919', fontSize: 14 }}>{sectionAvg.toFixed(2)}</span>
-                              : <span style={{ color: 'rgb(var(--c-text-secondary) / calc(0.2 * var(--c-sec-mult)))', fontSize: 11 }}>—</span>}
+                            <span className="font-display" style={{ color: deltaColor(pillarDelta), fontSize: 14 }}>{fmtDelta(pillarDelta)}</span>
                           </td>
                           <td style={{ ...cell, height: 36 }}>
-                            <span style={{ color: 'rgb(var(--c-text-secondary) / calc(0.25 * var(--c-sec-mult)))', fontSize: '0.6rem', letterSpacing: '0.12em', textTransform: 'uppercase' }}>section average</span>
+                            <span style={{ color: 'rgb(var(--c-text-secondary) / calc(0.25 * var(--c-sec-mult)))', fontSize: '0.6rem', letterSpacing: '0.12em', textTransform: 'uppercase' }}>pillar net points</span>
                           </td>
                         </tr>,
                         ...pillar.criteria.map((criterion: any) => {
@@ -771,15 +915,10 @@ export function AssessmentEntryPage() {
                               <td style={{ ...cell, color: 'rgb(var(--c-text-secondary) / calc(0.2 * var(--c-sec-mult)))', fontSize: 11, fontFamily: 'var(--font-display)', textAlign: 'center' }}>{num}</td>
                               <td style={{ ...cell, color: 'rgb(var(--c-text-primary) / 0.82)', fontSize: 13 }}>{criterion.name}</td>
                               <td style={{ ...cell, color: 'rgb(var(--c-text-secondary) / calc(0.3 * var(--c-sec-mult)))', fontSize: 11 }}>—</td>
-                              <td style={{ ...cell, textAlign: 'center', padding: '0 8px' }}>
-                                <input
-                                  type="number" min={0} max={10} step={0.5}
-                                  value={scores[criterion.id] ?? ''}
-                                  onChange={e => handleScoreChange(criterion.id, e.target.value)}
-                                  onBlur={() => handleScoreBlur(criterion.id)}
-                                  placeholder="—"
-                                  style={scoreInputStyle}
-                                  onFocus={e => { e.target.style.borderColor = '#E11919'; e.target.style.boxShadow = '0 0 10px rgba(225,25,25,0.15)' }}
+                              <td style={{ ...cell, padding: '0 8px' }}>
+                                <DeltaStepper
+                                  value={scores[criterion.id] ?? 0}
+                                  onChange={v => setCriterionDelta(criterion.id, v)}
                                 />
                               </td>
                               <td style={{ ...cell, padding: '0 12px' }}>
@@ -799,12 +938,10 @@ export function AssessmentEntryPage() {
                     })}
                     <tr style={{ background: 'rgba(225,25,25,0.08)', borderTop: '1px solid rgba(225,25,25,0.2)' }}>
                       <td colSpan={3} style={{ ...cell, height: 48, paddingLeft: 16 }}>
-                        <span className="font-display text-off-white" style={{ fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase' }}>This Test — Grade</span>
+                        <span className="font-display text-off-white" style={{ fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase' }}>Net Points This Session</span>
                       </td>
                       <td colSpan={2} style={{ ...cell, height: 48, textAlign: 'center' }}>
-                        {calc
-                          ? <span className="font-display" style={{ color: '#E11919', fontSize: 18 }}>{calc.grade.toFixed(1)}<span style={{ fontSize: 12 }}>%</span></span>
-                          : <span style={{ color: 'rgb(var(--c-text-secondary) / calc(0.2 * var(--c-sec-mult)))' }}>—</span>}
+                        <span className="font-display" style={{ color: deltaColor(netCalc.netDelta), fontSize: 18 }}>{fmtDelta(netCalc.netDelta)}</span>
                       </td>
                     </tr>
                   </tbody>
@@ -837,12 +974,12 @@ export function AssessmentEntryPage() {
               {submitted && (
                 <div className="flex items-center gap-2">
                   <CheckCircle size={14} style={{ color: '#34d399' }} />
-                  <span style={{ color: '#34d399', fontSize: '0.75rem' }}>Submitted — final score auto-averaged from all coach entries</span>
+                  <span style={{ color: '#34d399', fontSize: '0.75rem' }}>Submitted — points averaged across all coach entries</span>
                 </div>
               )}
               {entries.length > 1 && (
                 <p style={{ color: 'rgb(var(--c-text-secondary) / calc(0.35 * var(--c-sec-mult)))', fontSize: '0.65rem', marginTop: 4 }}>
-                  {entries.length} coach submissions for {date} — final score averaged
+                  {entries.length} coach submissions for {date} — final points averaged
                 </p>
               )}
             </div>

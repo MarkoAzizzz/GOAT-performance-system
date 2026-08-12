@@ -43,8 +43,8 @@ class PillarScoreInline(admin.TabularInline):
 
 @admin.register(AssessmentSession)
 class AssessmentSessionAdmin(admin.ModelAdmin):
-    list_display = ['student', 'assessment_date', 'martial_art', 'overall_score', 'grade_percentage', 'rating_after']
+    list_display = ['student', 'assessment_date', 'martial_art', 'overall_score', 'grade_percentage', 'net_delta', 'rating_after']
     list_filter = ['martial_art', 'assessment_date']
     search_fields = ['student__student_id', 'student__user__full_name']
-    readonly_fields = ['id', 'overall_score', 'grade_percentage', 'rating_before', 'rating_after', 'created_at']
+    readonly_fields = ['id', 'overall_score', 'grade_percentage', 'net_delta', 'rating_before', 'rating_after', 'created_at']
     inlines = [PillarScoreInline, CriterionScoreInline]

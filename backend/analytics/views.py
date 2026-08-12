@@ -63,9 +63,7 @@ class SportBreakdownView(APIView):
         result = []
         for sport in sports:
             students = Student.objects.filter(sport=sport)
-            total_sessions = AssessmentSession.objects.filter(
-                student__sport=sport, grade_percentage__isnull=False
-            ).count()
+            total_sessions = AssessmentSession.objects.filter(student__sport=sport).count()
             rating_stats = students.filter(is_active=True).aggregate(
                 avg=Avg('rating'),
                 highest=Max('rating'),
@@ -194,6 +192,12 @@ class ScoreDistributionView(APIView):
 
 
 def _weekly_trend():
+    """
+    Points-based going forward: average net_delta per week. Weeks made up
+    entirely of legacy (pre-points) sessions will show 0/empty here since
+    those only have grade_percentage — they naturally age out of this
+    rolling 8-week window as new-style assessments accumulate.
+    """
     today = timezone.now().date()
     trend = []
     for i in range(7, -1, -1):
@@ -201,11 +205,11 @@ def _weekly_trend():
         week_end = day + timedelta(days=6)
         stats = AssessmentSession.objects.filter(
             assessment_date__range=(day, week_end),
-            grade_percentage__isnull=False,
-        ).aggregate(avg=Avg('grade_percentage'), count=Count('id'))
+            net_delta__isnull=False,
+        ).aggregate(avg=Avg('net_delta'), count=Count('id'))
         trend.append({
             'week': day.strftime('%b %d'),
-            'average_score': round(stats['avg'] or 0, 2),
+            'average_net_delta': round(stats['avg'] or 0, 2),
             'assessment_count': stats['count'],
         })
     return trend

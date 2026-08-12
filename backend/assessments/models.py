@@ -85,6 +85,10 @@ class AssessmentSession(models.Model):
     rating_before = models.DecimalField(max_digits=6, decimal_places=1, null=True)
     rating_after = models.DecimalField(max_digits=6, decimal_places=1, null=True)
 
+    # Points-based model (see assessments.engine): sum of every pillar's delta
+    # this session. Null on legacy grade_percentage-based sessions.
+    net_delta = models.DecimalField(max_digits=6, decimal_places=1, null=True, blank=True)
+
     synced_from_sheet = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -119,6 +123,12 @@ class CriterionScore(models.Model):
         max_digits=4, decimal_places=2, null=True,
         help_text='Calculated by engine: average of filled scores.',
     )
+    # Points-based model: +/- point adjustment for this criterion this
+    # session. Null on legacy 0-10 absolute-score rows.
+    delta = models.DecimalField(
+        max_digits=4, decimal_places=1, null=True, blank=True,
+        validators=[MinValueValidator(-5), MaxValueValidator(5)],
+    )
     coach_comment = models.TextField(blank=True)
 
     class Meta:
@@ -137,7 +147,15 @@ class PillarScore(models.Model):
         AssessmentSession, on_delete=models.PROTECT, related_name='pillar_scores'
     )
     pillar = models.ForeignKey(Pillar, on_delete=models.PROTECT)
-    score = models.DecimalField(max_digits=4, decimal_places=2)
+    # Legacy 0-10 absolute score. Null on new-style (points-based) rows.
+    score = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
+
+    # Points-based model: this session's summed criterion delta for the
+    # pillar, and the running open-ended standing before/after it. Null on
+    # legacy rows — see assessments.coach_service.recompute_standings.
+    delta = models.DecimalField(max_digits=6, decimal_places=1, null=True, blank=True)
+    standing_before = models.DecimalField(max_digits=8, decimal_places=1, null=True, blank=True)
+    standing_after = models.DecimalField(max_digits=8, decimal_places=1, null=True, blank=True)
 
     class Meta:
         db_table = 'pillar_scores'
@@ -175,10 +193,16 @@ class CoachCriterionScore(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     entry = models.ForeignKey(CoachEntry, on_delete=models.CASCADE, related_name='scores')
     criterion = models.ForeignKey(Criterion, on_delete=models.PROTECT)
+    # Legacy 0-10 absolute score. Null on new-style (points-based) entries.
     score = models.DecimalField(
         max_digits=3, decimal_places=1,
         validators=[MinValueValidator(0), MaxValueValidator(10)],
         null=True, blank=True,
+    )
+    # Points-based model: +/- point adjustment for this criterion.
+    delta = models.DecimalField(
+        max_digits=4, decimal_places=1, null=True, blank=True,
+        validators=[MinValueValidator(-5), MaxValueValidator(5)],
     )
     comment = models.TextField(blank=True)
 

@@ -5,9 +5,10 @@ Business logic only. No HTTP, no serializers.
 import logging
 from decimal import Decimal
 from django.db import transaction
-from .engine import process_session
+from django.db.models import Q
+from .engine import process_session_legacy
 from .models import AssessmentSession, CriterionScore, PillarScore, Criterion, Pillar
-from .coach_service import recompute_ratings
+from .coach_service import recompute_standings
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +50,7 @@ def calculate_and_store(session: AssessmentSession) -> AssessmentSession:
             for r in raw_scores
         ]
 
-        result = process_session(engine_input, pillars=[
+        result = process_session_legacy(engine_input, pillars=[
             {'id': str(p['id']), 'name': p['name']} for p in pillars
         ])
 
@@ -84,7 +85,7 @@ def calculate_and_store(session: AssessmentSession) -> AssessmentSession:
             session.id, result.overall_score, result.grade_percentage,
         )
 
-    recompute_ratings(session.student)
+    recompute_standings(session.student)
     return session
 
 
@@ -92,15 +93,15 @@ def get_student_progress(student_id: str) -> dict:
     """
     Return a progress summary for a student across all their assessments.
     The headline metric is the open-ended rating (see assessments.engine) —
-    grade_percentage/overall_score still ride along per-session in `history`
-    since they're the bounded "how did this one test go" numbers, but they
-    are not aggregated into a top-line score here.
+    grade_percentage/overall_score (legacy) or net_delta (points-based) still
+    ride along per-session in `history` since they're the "how did this one
+    test go" numbers, but they are not aggregated into a top-line score here.
     """
     sessions = list(
         AssessmentSession.objects
-        .filter(student_id=student_id, overall_score__isnull=False)
+        .filter(Q(overall_score__isnull=False) | Q(net_delta__isnull=False), student_id=student_id)
         .order_by('assessment_date')
-        .values('id', 'assessment_date', 'overall_score', 'grade_percentage',
+        .values('id', 'assessment_date', 'overall_score', 'grade_percentage', 'net_delta',
                 'coach_notes', 'action_plan', 'sessions_completed',
                 'rating_before', 'rating_after')
     )
@@ -125,7 +126,7 @@ def get_student_progress(student_id: str) -> dict:
         PillarScore.objects
         .filter(session_id=latest['id'])
         .select_related('pillar')
-        .values('pillar__name', 'pillar__order', 'score')
+        .values('pillar__name', 'pillar__order', 'score', 'delta', 'standing_before', 'standing_after')
         .order_by('pillar__order')
     )
 

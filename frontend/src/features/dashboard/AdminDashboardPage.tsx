@@ -137,7 +137,7 @@ export function AdminDashboardPage() {
             <div className="flex items-center gap-3 mb-5">
               <div className="w-[3px] h-4 bg-blood-red" />
               <h3 className="font-display text-off-white text-xs uppercase tracking-[0.22em]">
-                Score Trend — 8 Weeks
+                Net Points Trend — 8 Weeks
               </h3>
             </div>
             <ResponsiveContainer width="100%" height={200}>
@@ -150,15 +150,15 @@ export function AdminDashboardPage() {
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgb(var(--c-overlay) / calc(0.04 * var(--c-ovl-mult)))" />
                 <XAxis dataKey="week" tick={{ fill: 'rgb(var(--c-text-secondary))', fontSize: 10 }} tickLine={false} axisLine={false} />
-                <YAxis domain={[0, 100]} tick={{ fill: 'rgb(var(--c-text-secondary))', fontSize: 10 }} tickLine={false} axisLine={false} />
+                <YAxis tick={{ fill: 'rgb(var(--c-text-secondary))', fontSize: 10 }} tickLine={false} axisLine={false} />
                 <Tooltip
                   contentStyle={{ background: 'rgb(var(--c-bg-elevated))', border: '1px solid rgba(225,25,25,0.2)', borderRadius: 0, fontSize: 12 }}
                   labelStyle={{ color: 'rgb(var(--c-text-secondary))', fontSize: 11, letterSpacing: '0.1em' }}
                   itemStyle={{ color: '#E11919' }}
                   cursor={{ stroke: 'rgba(225,25,25,0.2)', strokeWidth: 1 }}
                 />
-                <Area type="monotone" dataKey="average_score" stroke="#E11919" strokeWidth={2}
-                  fill="url(#scoreGrad)" name="Avg Score %" dot={{ fill: '#E11919', r: 3, strokeWidth: 0 }}
+                <Area type="monotone" dataKey="average_net_delta" stroke="#E11919" strokeWidth={2}
+                  fill="url(#scoreGrad)" name="Avg Net Points" dot={{ fill: '#E11919', r: 3, strokeWidth: 0 }}
                   activeDot={{ r: 5, fill: '#E11919', stroke: 'rgba(225,25,25,0.3)', strokeWidth: 4 }}
                 />
               </AreaChart>

@@ -1,9 +1,11 @@
 import datetime
+from decimal import Decimal
 from django.test import TestCase
 from rest_framework.test import APIClient
 from accounts.models import User
 from students.models import Branch, Student
-from assessments.models import AssessmentTemplate, Pillar, Criterion, AssessmentSession
+from assessments.models import AssessmentTemplate, Pillar, Criterion, AssessmentSession, PillarScore
+from assessments.coach_service import recompute_standings
 
 
 def make_admin():
@@ -143,3 +145,46 @@ class StudentProgressTests(TestCase):
         import uuid
         resp = self.client.get(f'/api/v1/students/{uuid.uuid4()}/progress/')
         self.assertEqual(resp.status_code, 404)
+
+
+class PillarStandingReplayTests(TestCase):
+    """A points-based (new-style) session's pillar standing must seed from
+    whatever the student's last legacy (absolute 0-10) session recorded for
+    that pillar, not from zero — see coach_service.recompute_standings."""
+
+    def setUp(self):
+        branch = make_branch()
+        self.template = make_template()
+        self.pillar = Pillar.objects.filter(template=self.template).order_by('order').first()
+        self.student = make_student(branch)
+
+        self.legacy_session = make_session(
+            self.student, self.template, datetime.date(2026, 5, 1), score=75.0,
+        )
+        PillarScore.objects.create(session=self.legacy_session, pillar=self.pillar, score=Decimal('7.50'))
+
+        self.points_session = AssessmentSession.objects.create(
+            student=self.student, template=self.template,
+            assessment_date=datetime.date(2026, 6, 1), martial_art=self.student.sport,
+            net_delta=Decimal('2.0'),
+        )
+        PillarScore.objects.create(session=self.points_session, pillar=self.pillar, delta=Decimal('2.0'))
+
+    def test_new_session_standing_seeds_from_legacy_score(self):
+        recompute_standings(self.student)
+
+        ps = PillarScore.objects.get(session=self.points_session, pillar=self.pillar)
+        self.assertEqual(ps.standing_before, Decimal('7.50'))
+        self.assertEqual(ps.standing_after, Decimal('9.50'))
+
+    def test_rating_continues_from_legacy_chain(self):
+        recompute_standings(self.student)
+
+        self.legacy_session.refresh_from_db()
+        self.points_session.refresh_from_db()
+        self.student.refresh_from_db()
+
+        # The points-based session's rating_before must equal the legacy
+        # session's rating_after — no discontinuity at the switchover.
+        self.assertEqual(self.points_session.rating_before, self.legacy_session.rating_after)
+        self.assertEqual(self.student.rating, self.points_session.rating_after)

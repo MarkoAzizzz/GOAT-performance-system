@@ -5,6 +5,7 @@ Called automatically after every assessment calculation.
 import logging
 from decimal import Decimal
 from django.db import transaction
+from django.db.models import Q
 from assessments.models import AssessmentSession
 from students.models import Student
 from .models import LeaderboardSnapshot
@@ -16,9 +17,9 @@ def refresh_student(student: Student) -> None:
     """Rebuild the leaderboard snapshot for a single student."""
     sessions = list(
         AssessmentSession.objects
-        .filter(student=student, overall_score__isnull=False)
+        .filter(Q(overall_score__isnull=False) | Q(net_delta__isnull=False), student=student)
         .order_by('-assessment_date')
-        .only('id', 'overall_score', 'grade_percentage', 'rating_before', 'rating_after')
+        .only('id', 'overall_score', 'grade_percentage', 'net_delta', 'rating_before', 'rating_after')
     )
 
     if not sessions:

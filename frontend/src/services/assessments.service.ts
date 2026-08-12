@@ -19,7 +19,7 @@ export const assessmentEntryService = {
     sessions_completed: number
     notes: string
     action_plan: string
-    scores: { criterion_id: string; score: number | null; comment: string }[]
+    scores: { criterion_id: string; delta: number; comment: string }[]
   }): Promise<any> {
     const { data } = await api.post('/assessments/coach-entries/', payload)
     return data.data

@@ -12,7 +12,7 @@ class CriterionScoreSerializer(serializers.ModelSerializer):
         model = CriterionScore
         fields = [
             'id', 'criterion_name', 'pillar_name', 'pillar_order', 'criterion_order',
-            'boxing_score', 'kickboxing_score', 'effective_score', 'coach_comment',
+            'boxing_score', 'kickboxing_score', 'effective_score', 'delta', 'coach_comment',
         ]
 
 
@@ -22,7 +22,7 @@ class PillarScoreSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PillarScore
-        fields = ['pillar_name', 'pillar_order', 'score']
+        fields = ['pillar_name', 'pillar_order', 'score', 'delta', 'standing_before', 'standing_after']
 
 
 class AssessmentListSerializer(serializers.ModelSerializer):
@@ -33,7 +33,7 @@ class AssessmentListSerializer(serializers.ModelSerializer):
         model = AssessmentSession
         fields = [
             'id', 'student', 'student_id', 'student_name', 'assessment_date',
-            'martial_art', 'overall_score', 'grade_percentage',
+            'martial_art', 'overall_score', 'grade_percentage', 'net_delta',
             'rating_before', 'rating_after',
             'sessions_completed', 'created_at',
         ]
@@ -50,7 +50,7 @@ class AssessmentDetailSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'student_id', 'student_name', 'assessment_date',
             'martial_art', 'sessions_completed', 'overall_score',
-            'grade_percentage',
+            'grade_percentage', 'net_delta',
             'rating_before', 'rating_after',
             'coach_notes', 'action_plan',
             'pillar_scores', 'criterion_scores', 'created_at',
@@ -88,7 +88,7 @@ class CoachCriterionScoreSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CoachCriterionScore
-        fields = ['criterion_id', 'score', 'comment']
+        fields = ['criterion_id', 'score', 'delta', 'comment']
 
 
 class CoachEntrySerializer(serializers.ModelSerializer):
@@ -122,6 +122,10 @@ class CoachEntrySerializer(serializers.ModelSerializer):
             CoachCriterionScore.objects.update_or_create(
                 entry=entry,
                 criterion_id=score_data['criterion_id'],
-                defaults={'score': score_data.get('score'), 'comment': score_data.get('comment', '')},
+                defaults={
+                    'score': score_data.get('score'),
+                    'delta': score_data.get('delta'),
+                    'comment': score_data.get('comment', ''),
+                },
             )
         return entry

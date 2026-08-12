@@ -2,6 +2,7 @@
 import re
 import requests as http_requests
 from django.conf import settings
+from django.db.models import Q
 from django.http import StreamingHttpResponse
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
@@ -25,17 +26,26 @@ ABOUT GOAT:
 """
 
 SYSTEM_PROMPT_TAIL = """
-GRADE CALCULATION (per single assessment):
-- Each criterion is scored 0-10 by a coach
-- Each pillar score = average of its criteria
-- That assessment's grade % = average of all pillar scores x 10
+SCORING MODEL (per single assessment):
+- Coaches don't give absolute scores — each session they nudge every
+  criterion up or down a few points based on whether the student improved or
+  declined since last time (a positive delta = improved, negative = declined,
+  zero = no change)
+- Each pillar has an open-ended running "standing" that accumulates those
+  point deltas over time, session after session — there's no fixed 0-10 or
+  0-100 scale, a pillar's standing just keeps moving up or down like the
+  rating does
+- That assessment's net point change = the sum of all pillar deltas that
+  session, and THAT is what moves the rating (see below)
+- Note: some older assessments (before this points system existed) were
+  scored on an absolute 0-10-per-criterion / percentage basis — if you see a
+  percentage in older assessment data, that's the legacy format, not a bug
 
 RATING (the headline number students and the leaderboard are ranked by — NOT a percentage, no fixed maximum):
 - Every student starts at a baseline rating when they join
-- After each assessment, the rating moves up or down depending on whether that
-  assessment's grade % beat or missed what the student's rating already
-  implied they should score — beat your own expectation and it rises, miss it
-  and it falls
+- After each assessment, the rating moves up or down by that session's net
+  point change (scaled larger for newer students, smaller once established)
+  — positive net points raise it, negative net points lower it
 - The bar rises the higher the rating gets, so there is no point at which
   climbing further becomes impossible — only harder. Nobody can "max out";
   ratings and the leaderboard stay open-ended at the top — if asked "what's
@@ -98,12 +108,26 @@ def build_system_prompt() -> str:
 
 
 def _pillar_pct(score) -> float:
-    """Pillar scores are meant to be 0-10 (matching the 0-10 criterion scale used
-    everywhere else), but some historical/seeded rows were stored 0-100. Normalize
-    to a 0-100 percentage either way so the chatbot never reports a nonsense value
-    like "61/10"."""
+    """Legacy only. Pillar scores were meant to be 0-10, but some
+    historical/seeded rows were stored 0-100. Normalize to a 0-100 percentage
+    either way so the chatbot never reports a nonsense value like "61/10"."""
     value = float(score)
     return value if value > 10 else value * 10
+
+
+def _pillar_sort_key(p) -> float:
+    """Points-based pillars sort by their running standing; legacy ones (no
+    standing_after) sort by the normalized percentage."""
+    if p.get('standing_after') is not None:
+        return float(p['standing_after'])
+    return _pillar_pct(p['score'])
+
+
+def _pillar_display(p) -> str:
+    if p.get('standing_after') is not None:
+        standing = float(p['standing_after'])
+        return f"{standing:+.1f} pts"
+    return f"{_pillar_pct(p['score']):.1f}%"
 
 
 def _pillar_lines(latest_pillar_scores) -> list:
@@ -111,7 +135,7 @@ def _pillar_lines(latest_pillar_scores) -> list:
     weakest/strongest so the model can answer "what should I/they improve" precisely."""
     if not latest_pillar_scores:
         return []
-    pillars = sorted(latest_pillar_scores, key=lambda p: _pillar_pct(p['score']))
+    pillars = sorted(latest_pillar_scores, key=_pillar_sort_key)
     lines = []
     for i, p in enumerate(pillars):
         tag = ''
@@ -119,7 +143,7 @@ def _pillar_lines(latest_pillar_scores) -> list:
             tag = '  <- WEAKEST, prioritize improving this pillar'
         elif i == len(pillars) - 1 and len(pillars) > 1:
             tag = '  <- strongest pillar'
-        lines.append(f"    {p['pillar__name']}: {_pillar_pct(p['score']):.1f}%{tag}")
+        lines.append(f"    {p['pillar__name']}: {_pillar_display(p)}{tag}")
     return lines
 
 
@@ -265,14 +289,18 @@ def build_live_context(request_user, messages) -> str:
     recent = (
         AssessmentSession.objects
         .select_related('student__user')
-        .filter(grade_percentage__isnull=False)
+        .filter(Q(grade_percentage__isnull=False) | Q(net_delta__isnull=False))
         .order_by('-assessment_date')[:5]
     )
     if recent:
         lines.append("\nMOST RECENT ASSESSMENTS:")
         for s in recent:
             name = s.student.user.full_name
-            lines.append(f"  {s.assessment_date} — {name}: {float(s.grade_percentage):.1f}%")
+            if s.net_delta is not None:
+                net = float(s.net_delta)
+                lines.append(f"  {s.assessment_date} — {name}: {'+' if net > 0 else ''}{net:.1f} pts")
+            else:
+                lines.append(f"  {s.assessment_date} — {name}: {float(s.grade_percentage):.1f}%")
 
     # Total counts
     total_students = Student.objects.filter(is_active=True).count()
