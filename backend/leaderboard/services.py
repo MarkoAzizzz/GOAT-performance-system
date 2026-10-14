@@ -5,7 +5,7 @@ Called automatically after every assessment calculation.
 import logging
 from decimal import Decimal
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import F, Q
 from assessments.models import AssessmentSession
 from students.models import Student
 from .models import LeaderboardSnapshot
@@ -13,8 +13,36 @@ from .models import LeaderboardSnapshot
 logger = logging.getLogger(__name__)
 
 
-def refresh_student(student: Student) -> None:
-    """Rebuild the leaderboard snapshot for a single student."""
+def recompute_ranks() -> None:
+    """
+    Assign board positions across every snapshot, ordered by rating.
+
+    Rank is global, so one student's new score can move everyone below them —
+    it cannot be derived per student. Each snapshot's prior rank is kept in
+    previous_rank so clients can show movement; a snapshot with no rating yet
+    sorts last rather than first, which is what a plain DESC would do with
+    NULLs on Postgres.
+    """
+    snapshots = list(
+        LeaderboardSnapshot.objects.order_by(
+            F('current_rating').desc(nulls_last=True), F('rating_change').desc(nulls_last=True)
+        )
+    )
+    for position, snapshot in enumerate(snapshots, start=1):
+        snapshot.previous_rank = snapshot.rank
+        snapshot.rank = position
+
+    if snapshots:
+        LeaderboardSnapshot.objects.bulk_update(snapshots, ['rank', 'previous_rank'])
+
+
+def refresh_student(student: Student, recompute: bool = True) -> None:
+    """
+    Rebuild the leaderboard snapshot for a single student.
+
+    `recompute=False` lets a bulk caller skip the global rank pass per student
+    and run it once at the end instead.
+    """
     sessions = list(
         AssessmentSession.objects
         .filter(Q(overall_score__isnull=False) | Q(net_delta__isnull=False), student=student)
@@ -24,6 +52,8 @@ def refresh_student(student: Student) -> None:
 
     if not sessions:
         LeaderboardSnapshot.objects.filter(student=student).delete()
+        if recompute:
+            recompute_ranks()
         return
 
     latest = sessions[0]
@@ -50,6 +80,9 @@ def refresh_student(student: Student) -> None:
             },
         )
 
+    if recompute:
+        recompute_ranks()
+
     logger.debug(
         'Leaderboard refreshed: student=%s rating=%s change=%s',
         student.student_id, current_rating, rating_change,
@@ -61,9 +94,11 @@ def refresh_all() -> None:
     students = Student.objects.filter(is_active=True).select_related('user')
     for student in students:
         try:
-            refresh_student(student)
+            refresh_student(student, recompute=False)
         except Exception:
             logger.exception('Leaderboard refresh failed for student=%s', student.student_id)
+    # One global pass once every snapshot is current, rather than per student.
+    recompute_ranks()
     logger.info('Leaderboard refresh complete: %d students processed', students.count())
 
 

@@ -28,6 +28,15 @@ class LeaderboardSnapshot(models.Model):
         help_text='current_rating - previous_rating. Ranking tiebreaker.'
     )
     total_assessments = models.PositiveSmallIntegerField(default=0)
+    rank = models.PositiveSmallIntegerField(
+        null=True, blank=True,
+        help_text='Board position, 1 = highest current_rating.'
+    )
+    previous_rank = models.PositiveSmallIntegerField(
+        null=True, blank=True,
+        help_text='Position before the last recompute. previous_rank - rank '
+                  'gives the up/down movement clients show.'
+    )
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
