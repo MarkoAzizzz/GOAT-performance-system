@@ -14,6 +14,7 @@ urlpatterns = [
     path('api/v1/analytics/', include('analytics.urls')),
     path('api/v1/sync/', include('google_sync.urls')),
     path('api/v1/leaderboard/', include('leaderboard.urls')),
+    path('api/v1/packages/', include('packages.urls')),
     path('api/v1/chat/', include('chat.urls')),
 
     # API Docs

@@ -40,6 +40,7 @@ LOCAL_APPS = [
     'analytics',
     'google_sync',
     'leaderboard',
+    'packages',
     'chat',
 ]
 
