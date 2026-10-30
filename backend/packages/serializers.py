@@ -48,3 +48,8 @@ class PushTokenSerializer(serializers.ModelSerializer):
     class Meta:
         model = PushToken
         fields = ['token']
+        # token is unique on the model, which makes ModelSerializer auto-add
+        # a UniqueValidator — rejecting re-registration of an existing token
+        # before the view's update_or_create (which deliberately allows a
+        # device's token to change owners) ever runs.
+        extra_kwargs = {'token': {'validators': []}}
