@@ -125,6 +125,39 @@ class MyPackageView(APIView):
         return success_response(data=PackageSerializer(package).data)
 
 
+class StudentPackageHistoryView(APIView):
+    """Every package a given student has ever had — admin lookup, unlike
+    MyPackageHistoryView. Works for deactivated students too: leaving the
+    roster doesn't erase their attendance/package record."""
+
+    permission_classes = [IsAuthenticated, IsAdmin]
+
+    def get(self, request, pk):
+        student = _get_student(pk)
+        if student is None:
+            return error_response('Student not found.', status_code=404)
+
+        packages = SessionPackage.objects.filter(student=student).prefetch_related('check_ins')
+        return success_response(data=PackageSerializer(packages, many=True).data)
+
+
+class MyPackageHistoryView(APIView):
+    """Every package the signed-in student has ever had, newest first."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        if not hasattr(request.user, 'student_profile'):
+            return error_response('No student profile for this user.', status_code=404)
+
+        packages = (
+            SessionPackage.objects
+            .filter(student=request.user.student_profile)
+            .prefetch_related('check_ins')
+        )
+        return success_response(data=PackageSerializer(packages, many=True).data)
+
+
 class RegisterPushTokenView(APIView):
     """Devices call this on launch; re-registering the same token is a no-op."""
 

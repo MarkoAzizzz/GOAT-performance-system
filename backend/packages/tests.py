@@ -87,6 +87,8 @@ class PackageNotificationTests(TestCase):
     @patch('packages.services.send_to_user')
     def test_warns_once_at_one_remaining(self, mock_send):
         assign_package(self.student, 8)
+        # Assigning notifies too; this test is only about the check-in path.
+        mock_send.reset_mock()
         for _ in range(7):
             check_in(self.student)
 
@@ -96,6 +98,7 @@ class PackageNotificationTests(TestCase):
     @patch('packages.services.send_to_user')
     def test_notifies_when_package_is_finished(self, mock_send):
         assign_package(self.student, 8)
+        mock_send.reset_mock()
         for _ in range(8):
             check_in(self.student)
 
@@ -104,8 +107,38 @@ class PackageNotificationTests(TestCase):
         self.assertEqual(mock_send.call_args.kwargs['data']['type'], 'package_exhausted')
 
     @patch('packages.services.send_to_user')
+    def test_first_package_is_welcomed(self, mock_send):
+        assign_package(self.student, 12)
+
+        self.assertEqual(mock_send.call_count, 1)
+        self.assertEqual(mock_send.call_args.kwargs['title'], 'Welcome to GOAT')
+        self.assertIn('12 sessions', mock_send.call_args.kwargs['body'])
+
+    @patch('packages.services.send_to_user')
+    def test_second_package_reads_as_a_renewal(self, mock_send):
+        assign_package(self.student, 8)
+        mock_send.reset_mock()
+        assign_package(self.student, 12)
+
+        self.assertEqual(mock_send.call_args.kwargs['title'], 'Package renewed')
+        self.assertIn('12 sessions', mock_send.call_args.kwargs['body'])
+
+    @patch('packages.services.send_to_user')
+    def test_renewal_is_detected_from_history_not_open_packages(self, mock_send):
+        # The first package is closed by the renewal, so "has any package"
+        # must be checked against history or every renewal looks like a first.
+        assign_package(self.student, 8)
+        for _ in range(8):
+            check_in(self.student)
+        mock_send.reset_mock()
+        assign_package(self.student, 8)
+
+        self.assertEqual(mock_send.call_args.kwargs['title'], 'Package renewed')
+
+    @patch('packages.services.send_to_user')
     def test_quiet_while_the_package_is_healthy(self, mock_send):
         assign_package(self.student, 12)
+        mock_send.reset_mock()
         for _ in range(5):
             check_in(self.student)
         mock_send.assert_not_called()
@@ -169,3 +202,53 @@ class PackageApiTests(TestCase):
         resp = self.client.get('/api/v1/packages/me/')
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.data['data']['remaining_sessions'], 12)
+
+    def test_student_sees_full_package_history_newest_first(self):
+        assign_package(self.student, 8)
+        check_in(self.student)
+        assign_package(self.student, 12)
+        self.client.credentials()
+        login = self.client.post(
+            '/api/v1/auth/login/',
+            {'email': 'ali@goat.com', 'password': 'Pass123!'},
+            format='json',
+        )
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {login.data["data"]["access"]}')
+        resp = self.client.get('/api/v1/packages/me/history/')
+        self.assertEqual(resp.status_code, 200)
+        rows = resp.data['data']
+        self.assertEqual(len(rows), 2)
+        self.assertEqual(rows[0]['total_sessions'], 12)
+        self.assertEqual(rows[1]['total_sessions'], 8)
+        self.assertEqual(len(rows[1]['check_ins']), 1)
+
+    def test_admin_sees_any_students_full_history(self):
+        assign_package(self.student, 8)
+        check_in(self.student)
+        assign_package(self.student, 12)
+        resp = self.client.get(f'/api/v1/packages/{self.student.id}/history/')
+        self.assertEqual(resp.status_code, 200)
+        rows = resp.data['data']
+        self.assertEqual(len(rows), 2)
+        self.assertEqual(rows[0]['total_sessions'], 12)
+        self.assertEqual(len(rows[1]['check_ins']), 1)
+
+    def test_admin_sees_history_for_a_deactivated_student(self):
+        assign_package(self.student, 8)
+        check_in(self.student)
+        self.student.is_active = False
+        self.student.save(update_fields=['is_active'])
+        resp = self.client.get(f'/api/v1/packages/{self.student.id}/history/')
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(len(resp.data['data']), 1)
+
+    def test_students_cannot_see_another_students_history(self):
+        self.client.credentials()
+        login = self.client.post(
+            '/api/v1/auth/login/',
+            {'email': 'ali@goat.com', 'password': 'Pass123!'},
+            format='json',
+        )
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {login.data["data"]["access"]}')
+        resp = self.client.get(f'/api/v1/packages/{self.student.id}/history/')
+        self.assertEqual(resp.status_code, 403)
