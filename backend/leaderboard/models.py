@@ -28,6 +28,11 @@ class LeaderboardSnapshot(models.Model):
         help_text='current_rating - previous_rating. Ranking tiebreaker.'
     )
     total_assessments = models.PositiveSmallIntegerField(default=0)
+    # Board position by the same ordering as get_leaderboard(), 1 = top.
+    # previous_rank carries the prior value forward on each recompute so the
+    # board can show movement (previous_rank - rank).
+    rank = models.PositiveIntegerField(null=True, blank=True)
+    previous_rank = models.PositiveIntegerField(null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:

@@ -55,6 +55,31 @@ def refresh_student(student: Student) -> None:
         student.student_id, current_rating, rating_change,
     )
 
+    _recompute_ranks()
+
+
+def _recompute_ranks() -> None:
+    """
+    Assign rank 1..N to every active student's snapshot, by the same
+    ordering get_leaderboard() returns. One student's rating changing can
+    shift everyone else's position, so this always re-ranks the whole table
+    rather than just the student who was just updated. The prior rank is
+    carried into previous_rank first so the board can show movement.
+
+    Deactivated students are skipped entirely (their stored rank just goes
+    stale) — otherwise they'd occupy a slot nobody can see, leaving gaps in
+    the numbers an admin or student actually sees (e.g. 1, 2, 4, 5).
+    """
+    snapshots = list(
+        LeaderboardSnapshot.objects
+        .filter(student__is_active=True)
+        .order_by('-current_rating', '-rating_change')
+    )
+    for i, snapshot in enumerate(snapshots, start=1):
+        snapshot.previous_rank = snapshot.rank
+        snapshot.rank = i
+    LeaderboardSnapshot.objects.bulk_update(snapshots, ['rank', 'previous_rank'])
+
 
 def refresh_all() -> None:
     """Rebuild snapshots for every active student. Used after bulk sync."""
@@ -79,6 +104,7 @@ def get_leaderboard(
     qs = (
         LeaderboardSnapshot.objects
         .select_related('student__user', 'student__branch')
+        .filter(student__is_active=True)
         .order_by('-current_rating', '-rating_change')
     )
 

@@ -5,6 +5,7 @@ from accounts.models import User
 from students.models import Branch, Student
 from assessments.models import AssessmentTemplate, Pillar, Criterion, AssessmentSession
 from .models import LeaderboardSnapshot
+from .services import refresh_student
 
 
 def make_admin():
@@ -40,27 +41,22 @@ def make_template():
     return t
 
 
-def make_session(student, template, date, score):
-    return AssessmentSession.objects.create(
-        student=student, template=template,
-        assessment_date=date, overall_score=score,
-        grade_percentage=score, level_at_assessment='beginner',
-        martial_art=student.sport,
+def give_rating(student, rating_before, rating_after, date=datetime.date(2026, 6, 1)):
+    """
+    Writes an AssessmentSession with the rating already resolved, bypassing
+    the coach-entry pipeline — refresh_student only reads rating_before/
+    rating_after off the latest session, so this is enough to drive the
+    leaderboard without re-deriving the full scoring engine in every test.
+    """
+    AssessmentSession.objects.create(
+        student=student, template=AssessmentTemplate.objects.first(),
+        martial_art=student.sport, assessment_date=date,
+        rating_before=rating_before, rating_after=rating_after,
+        # refresh_student only picks up sessions where this (or overall_score)
+        # is set — it's what marks a session as "scored" versus a draft row.
+        net_delta=rating_after - rating_before,
     )
-
-
-def make_snapshot(student, current, previous=None, improvement=None, total=1):
-    s1 = make_session(student, AssessmentTemplate.objects.first(), datetime.date(2026, 6, 1), current)
-    snap = LeaderboardSnapshot(
-        student=student,
-        latest_session=s1,
-        current_score=current,
-        previous_score=previous,
-        improvement=improvement,
-        total_assessments=total,
-    )
-    snap.save()
-    return snap
+    refresh_student(student)
 
 
 def auth_admin(client):
@@ -73,33 +69,61 @@ class LeaderboardTests(TestCase):
         self.client = APIClient()
         make_admin()
         auth_admin(self.client)
-        branch = make_branch()
+        self.branch = make_branch()
         make_template()
-        self.s1 = make_student(branch, 'ali@goat.com', 'boxing')
-        self.s2 = make_student(branch, 'sara@goat.com', 'kickboxing')
-        self.s3 = make_student(branch, 'omar@goat.com', 'boxing')
-        make_snapshot(self.s1, current=80, previous=60, improvement=20, total=2)
-        make_snapshot(self.s2, current=75, previous=70, improvement=5, total=2)
-        make_snapshot(self.s3, current=90, previous=50, improvement=40, total=2)
+        self.s1 = make_student(self.branch, 'ali@goat.com', 'boxing')
+        self.s2 = make_student(self.branch, 'sara@goat.com', 'kickboxing')
+        self.s3 = make_student(self.branch, 'omar@goat.com', 'boxing')
+        give_rating(self.s1, 1000, 1080)
+        give_rating(self.s2, 1000, 1075)
+        give_rating(self.s3, 1000, 1090)
 
     def test_leaderboard_returns_all(self):
         resp = self.client.get('/api/v1/leaderboard/')
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(len(resp.data['data']), 3)
 
-    def test_ordered_by_improvement_desc(self):
+    def test_ordered_by_rating_desc(self):
         resp = self.client.get('/api/v1/leaderboard/')
-        improvements = [float(e['improvement']) for e in resp.data['data']]
-        self.assertEqual(improvements, sorted(improvements, reverse=True))
+        ratings = [float(e['current_rating']) for e in resp.data['data']]
+        self.assertEqual(ratings, sorted(ratings, reverse=True))
+
+    def test_rank_matches_order_and_is_contiguous(self):
+        resp = self.client.get('/api/v1/leaderboard/')
+        ranks = [e['rank'] for e in resp.data['data']]
+        self.assertEqual(ranks, [1, 2, 3])
+
+    def test_deactivated_student_is_excluded_and_ranks_stay_contiguous(self):
+        self.s3.is_active = False
+        self.s3.save(update_fields=['is_active'])
+        refresh_student(self.s1)  # any refresh re-ranks everyone
+        resp = self.client.get('/api/v1/leaderboard/')
+        ids = [e['student_id'] for e in resp.data['data']]
+        self.assertNotIn(self.s3.student_id, ids)
+        ranks = [e['rank'] for e in resp.data['data']]
+        self.assertEqual(ranks, [1, 2])
+
+    def test_higher_rating_never_ranks_below_a_lower_one(self):
+        # Regression guard for the comparator bug: every entry's rank must
+        # agree with its position in the rating-sorted order, not just look
+        # plausible in isolation.
+        resp = self.client.get('/api/v1/leaderboard/')
+        by_rank = sorted(resp.data['data'], key=lambda e: e['rank'])
+        ratings_by_rank = [float(e['current_rating']) for e in by_rank]
+        self.assertEqual(ratings_by_rank, sorted(ratings_by_rank, reverse=True))
+
+    def test_rank_movement_tracked_on_recompute(self):
+        # s2 starts in 3rd (1075 is lowest of the three) and jumps to 1st.
+        give_rating(self.s2, 1075, 1200, date=datetime.date(2026, 6, 8))
+        resp = self.client.get('/api/v1/leaderboard/')
+        s2_row = next(e for e in resp.data['data'] if e['student_id'] == self.s2.student_id)
+        self.assertEqual(s2_row['rank'], 1)
+        self.assertEqual(s2_row['previous_rank'], 3)
 
     def test_filter_by_sport(self):
         resp = self.client.get('/api/v1/leaderboard/?sport=boxing')
         sports = [e['sport'] for e in resp.data['data']]
         self.assertTrue(all(s == 'boxing' for s in sports))
-
-    def test_filter_by_level(self):
-        resp = self.client.get('/api/v1/leaderboard/?level=beginner')
-        self.assertEqual(resp.status_code, 200)
 
     def test_requires_auth(self):
         self.client.credentials()
@@ -109,5 +133,13 @@ class LeaderboardTests(TestCase):
     def test_response_shape(self):
         resp = self.client.get('/api/v1/leaderboard/')
         entry = resp.data['data'][0]
-        for field in ['student_id', 'student_name', 'sport', 'level', 'current_score', 'improvement']:
+        for field in [
+            'student_uuid', 'student_id', 'student_name', 'sport',
+            'current_rating', 'rating_change', 'rank', 'previous_rank',
+        ]:
             self.assertIn(field, entry)
+
+    def test_student_uuid_matches_the_real_student_id(self):
+        resp = self.client.get('/api/v1/leaderboard/')
+        row = next(e for e in resp.data['data'] if e['student_id'] == self.s1.student_id)
+        self.assertEqual(row['student_uuid'], str(self.s1.id))
