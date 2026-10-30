@@ -100,13 +100,10 @@ def recalculate(student, assessment_date):
     pillar_dicts = [{'id': str(p.id), 'name': p.name} for p in pillars]
     result = process_session(raw, pillar_dicts)
 
-    # Aggregate notes from all coaches
-    combined_notes = '\n---\n'.join(
-        f'[{e.coach.full_name if e.coach else "Coach"}]: {e.notes}' for e in entries if e.notes
-    )
-    combined_plan = '\n---\n'.join(
-        f'[{e.coach.full_name if e.coach else "Coach"}]: {e.action_plan}' for e in entries if e.action_plan
-    )
+    # Aggregate notes from all coaches. Not attributed by name — the student
+    # sees "their coach", not which specific staff account wrote which line.
+    combined_notes = '\n---\n'.join(e.notes for e in entries if e.notes)
+    combined_plan = '\n---\n'.join(e.action_plan for e in entries if e.action_plan)
     avg_sessions = round(sum(e.sessions_completed for e in entries) / len(entries))
 
     martial_art = student.sport
