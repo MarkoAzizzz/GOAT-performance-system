@@ -41,12 +41,19 @@ def assign_package(student: Student, total_sessions: int, assigned_by=None) -> S
     if total_sessions not in SessionPackage.Size.values:
         raise PackageError('Package size must be 8 or 12 sessions.')
 
+    # Checked before the insert — afterwards there is always at least one.
+    # Based on package history rather than join date, so a long-standing
+    # member whose packages were never recorded still reads as their first.
+    is_first = not SessionPackage.objects.filter(student=student).exists()
+
     SessionPackage.objects.filter(student=student, closed_at__isnull=True).update(
         closed_at=timezone.now()
     )
-    return SessionPackage.objects.create(
+    package = SessionPackage.objects.create(
         student=student, total_sessions=total_sessions, assigned_by=assigned_by
     )
+    _notify_assigned(student, total_sessions, is_first)
+    return package
 
 
 @transaction.atomic
@@ -88,6 +95,19 @@ def undo_check_in(check_in_id, student: Student) -> None:
     if entry is None:
         raise PackageError('Check-in not found for this student.')
     entry.delete()
+
+
+def _notify_assigned(student: Student, total_sessions: int, is_first: bool) -> None:
+    title = 'Welcome to GOAT' if is_first else 'Package renewed'
+    opening = (
+        'Your first package is ready.' if is_first else 'Your package has been renewed.'
+    )
+    send_to_user(
+        student.user,
+        title=title,
+        body=f'{opening} {total_sessions} sessions have been added to your account.',
+        data={'type': 'package_assigned', 'remaining': total_sessions},
+    )
 
 
 def _notify_running_low(student: Student, remaining: int) -> None:
