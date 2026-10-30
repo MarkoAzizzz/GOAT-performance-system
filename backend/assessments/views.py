@@ -8,6 +8,7 @@ from .serializers import (
     TemplateSerializer, CoachEntrySerializer,
 )
 from .coach_service import recalculate
+from .services import get_sport_analytics
 
 
 class AssessmentListView(APIView):
@@ -66,6 +67,14 @@ class AssessmentTemplateView(APIView):
         if not template:
             return error_response('No active template found.', status_code=404)
         return success_response(data=TemplateSerializer(template).data)
+
+
+class SportAnalyticsView(APIView):
+    """Coach-facing roster analytics, split by sport. See services.get_sport_analytics."""
+    permission_classes = [IsAuthenticated, IsAdmin]
+
+    def get(self, request):
+        return success_response(data=get_sport_analytics())
 
 
 class CoachEntryListCreateView(APIView):

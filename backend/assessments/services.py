@@ -6,9 +6,14 @@ import logging
 from decimal import Decimal
 from django.db import transaction
 from django.db.models import Q
+from django.utils import timezone
+from students.models import Student
 from .engine import process_session_legacy
-from .models import AssessmentSession, CriterionScore, PillarScore, Criterion, Pillar
+from .models import AssessmentSession, AssessmentTemplate, CriterionScore, PillarScore, Criterion, Pillar
 from .coach_service import recompute_standings
+
+# Every student starts here — "lifetime gain" is current rating minus this.
+BASE_RATING = 1000
 
 logger = logging.getLogger(__name__)
 
@@ -153,3 +158,83 @@ def _empty_progress() -> dict:
         'latest_pillar_scores': [],
         'history': [],
     }
+
+
+def get_sport_analytics() -> dict:
+    """
+    Coach-facing roster analytics, split by sport: roster size, how many
+    have been assessed this month, average rating and average lifetime gain
+    (current rating - the 1000 baseline), a short most-improved list, and
+    average pillar standing across each sport's latest assessments — the
+    one number here that actually points at what to train next.
+
+    Deliberately simple (one query per active student rather than a single
+    aggregate query) — this gym's roster is a few dozen students, not
+    thousands, so the straightforward version is worth more than the fast
+    one.
+    """
+    month_start = timezone.localdate().replace(day=1)
+    template = AssessmentTemplate.objects.filter(is_active=True).first()
+    pillars = list(template.pillars.all()) if template else []
+
+    result = {}
+    for sport in [s[0] for s in Student.Sport.choices]:
+        students = list(
+            Student.objects.filter(is_active=True, sport=sport).select_related('user')
+        )
+
+        latest_session_by_student = {}
+        assessed_this_month = 0
+        for student in students:
+            latest = (
+                AssessmentSession.objects
+                .filter(student=student)
+                .order_by('-assessment_date')
+                .first()
+            )
+            if latest:
+                latest_session_by_student[student.id] = latest
+                if latest.assessment_date >= month_start:
+                    assessed_this_month += 1
+
+        rated = [s for s in students if s.id in latest_session_by_student]
+        ratings = [float(s.rating) for s in rated]
+        average_rating = round(sum(ratings) / len(ratings), 1) if ratings else None
+        average_lifetime_gain = (
+            round(sum(r - BASE_RATING for r in ratings) / len(ratings), 1) if ratings else None
+        )
+
+        most_improved = sorted(rated, key=lambda s: float(s.rating), reverse=True)[:3]
+
+        pillar_totals: dict = {p.id: [] for p in pillars}
+        latest_session_ids = [s.id for s in latest_session_by_student.values()]
+        for row in PillarScore.objects.filter(
+            session_id__in=latest_session_ids, standing_after__isnull=False
+        ).values('pillar_id', 'standing_after'):
+            if row['pillar_id'] in pillar_totals:
+                pillar_totals[row['pillar_id']].append(float(row['standing_after']))
+
+        result[sport] = {
+            'total_members': len(students),
+            'assessed_this_month': assessed_this_month,
+            'average_rating': average_rating,
+            'average_lifetime_gain': average_lifetime_gain,
+            'most_improved': [
+                {
+                    'student_id': s.student_id,
+                    'student_name': s.user.full_name,
+                    'gain': round(float(s.rating) - BASE_RATING, 1),
+                }
+                for s in most_improved
+            ],
+            'pillar_strength': [
+                {
+                    'pillar_name': p.name,
+                    'average': round(sum(pillar_totals[p.id]) / len(pillar_totals[p.id]), 1)
+                    if pillar_totals[p.id] else None,
+                }
+                for p in pillars
+            ],
+        }
+
+    return result
