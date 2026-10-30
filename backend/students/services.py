@@ -7,15 +7,18 @@ logger = logging.getLogger(__name__)
 
 
 def _generate_student_id() -> str:
-    last = Student.objects.order_by('-student_id').first()
-    if last:
+    # String-sorting 'GOAT-NNN' breaks the moment any id doesn't match that
+    # shape (e.g. a legacy 'GT-001' sorts after 'GOAT-020'), so the next
+    # number is the max numeric GOAT- suffix instead of whatever sorts last.
+    max_num = 0
+    for sid in Student.objects.filter(student_id__startswith='GOAT-').values_list(
+        'student_id', flat=True
+    ):
         try:
-            num = int(last.student_id.split('-')[-1]) + 1
-        except (ValueError, IndexError):
-            num = 1
-    else:
-        num = 1
-    return f'GOAT-{num:03d}'
+            max_num = max(max_num, int(sid.split('-')[-1]))
+        except ValueError:
+            continue
+    return f'GOAT-{max_num + 1:03d}'
 
 
 def create_student(
@@ -45,9 +48,20 @@ def create_student(
 
 
 def deactivate_student(student: Student) -> Student:
+    """
+    Takes the student off the active roster — hidden from the leaderboard
+    and the default team list — without touching their login. They can
+    still sign in and see their own account; "deactivated" means "no longer
+    an active member," not "locked out."
+    """
     student.is_active = False
-    student.user.is_active = False
     student.save(update_fields=['is_active'])
-    student.user.save(update_fields=['is_active'])
     logger.info('Student deactivated: %s', student.student_id)
+    return student
+
+
+def reactivate_student(student: Student) -> Student:
+    student.is_active = True
+    student.save(update_fields=['is_active'])
+    logger.info('Student reactivated: %s', student.student_id)
     return student

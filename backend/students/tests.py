@@ -1,7 +1,9 @@
+import datetime
 import uuid
 from django.test import TestCase
 from rest_framework.test import APIClient
 from accounts.models import User
+from assessments.models import AssessmentSession, AssessmentTemplate
 from .models import Branch, Student
 
 
@@ -51,6 +53,31 @@ class BranchTests(TestCase):
         self.client.credentials()
         resp = self.client.get('/api/v1/students/branches/')
         self.assertEqual(resp.status_code, 401)
+
+    def test_create_branch(self):
+        resp = self.client.post(
+            '/api/v1/students/branches/', {'name': 'Zamalek Branch', 'location': 'Giza'}, format='json'
+        )
+        self.assertEqual(resp.status_code, 201)
+        self.assertEqual(resp.data['data']['name'], 'Zamalek Branch')
+        self.assertEqual(Branch.objects.count(), 2)
+
+    def test_create_branch_rejects_duplicate_name(self):
+        resp = self.client.post(
+            '/api/v1/students/branches/', {'name': self.branch.name, 'location': 'Somewhere'}, format='json'
+        )
+        self.assertFalse(resp.data['success'])
+
+    def test_create_branch_requires_admin(self):
+        su = User(email='stu@goat.com', full_name='S', role='student', is_active=True)
+        su.set_password('Pass123!')
+        su.save()
+        token = get_token(self.client, 'stu@goat.com', 'Pass123!')
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
+        resp = self.client.post(
+            '/api/v1/students/branches/', {'name': 'New Branch', 'location': 'X'}, format='json'
+        )
+        self.assertEqual(resp.status_code, 403)
 
 
 class StudentCreateTests(TestCase):
@@ -167,7 +194,47 @@ class StudentDetailTests(TestCase):
         student = Student.objects.get(id=self.student_uuid)
         self.assertFalse(student.is_active)
 
+    def test_deactivate_does_not_block_login(self):
+        # Deactivated means "off the roster/leaderboard," not "locked out" —
+        # the member can still sign in and use their own account normally.
+        self.client.delete(f'/api/v1/students/{self.student_uuid}/')
+        self.client.credentials()
+        resp = self.client.post(
+            '/api/v1/auth/login/',
+            {'email': STUDENT_PAYLOAD['email'], 'password': STUDENT_PAYLOAD['password']},
+            format='json',
+        )
+        self.assertEqual(resp.status_code, 200)
+
+    def test_reactivate_via_patch_restores_roster_status(self):
+        self.client.delete(f'/api/v1/students/{self.student_uuid}/')
+        resp = self.client.patch(
+            f'/api/v1/students/{self.student_uuid}/', {'is_active': True}, format='json'
+        )
+        self.assertEqual(resp.status_code, 200)
+        self.assertTrue(resp.data['data']['is_active'])
+        student = Student.objects.get(id=self.student_uuid)
+        self.assertTrue(student.is_active)
+
     def test_deactivate_returns_200(self):
         resp = self.client.delete(f'/api/v1/students/{self.student_uuid}/')
         self.assertEqual(resp.status_code, 200)
         self.assertTrue(resp.data['success'])
+
+    def test_last_assessment_date_is_null_before_any_assessment(self):
+        resp = self.client.get(f'/api/v1/students/{self.student_uuid}/')
+        self.assertIsNone(resp.data['data']['last_assessment_date'])
+
+    def test_last_assessment_date_reflects_the_most_recent_session(self):
+        student = Student.objects.get(id=self.student_uuid)
+        template = AssessmentTemplate.objects.create(name='v1', version=1, is_active=True)
+        AssessmentSession.objects.create(
+            student=student, template=template, martial_art=student.sport,
+            assessment_date=datetime.date(2026, 6, 1), net_delta=5,
+        )
+        AssessmentSession.objects.create(
+            student=student, template=template, martial_art=student.sport,
+            assessment_date=datetime.date(2026, 7, 15), net_delta=3,
+        )
+        resp = self.client.get(f'/api/v1/students/{self.student_uuid}/')
+        self.assertEqual(resp.data['data']['last_assessment_date'], datetime.date(2026, 7, 15))

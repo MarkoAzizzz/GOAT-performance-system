@@ -7,8 +7,11 @@ from core.responses import success_response, error_response, created_response
 from assessments.models import AssessmentSession, CriterionScore, PillarScore, CoachEntry
 from assessments.services import get_student_progress
 from .models import Branch, Student
-from .serializers import BranchSerializer, StudentSerializer, CreateStudentSerializer, UpdateStudentSerializer, ResetPasswordSerializer
-from .services import create_student, deactivate_student
+from .serializers import (
+    BranchSerializer, CreateBranchSerializer, StudentSerializer,
+    CreateStudentSerializer, UpdateStudentSerializer, ResetPasswordSerializer,
+)
+from .services import create_student, deactivate_student, reactivate_student
 
 
 class BranchListView(APIView):
@@ -17,6 +20,13 @@ class BranchListView(APIView):
     def get(self, request):
         branches = Branch.objects.filter(is_active=True)
         return success_response(data=BranchSerializer(branches, many=True).data)
+
+    def post(self, request):
+        serializer = CreateBranchSerializer(data=request.data)
+        if not serializer.is_valid():
+            return error_response('Validation failed.', serializer.errors)
+        branch = serializer.save()
+        return created_response(data=BranchSerializer(branch).data, message=f'{branch.name} added.')
 
 
 class StudentListView(APIView):
@@ -82,10 +92,23 @@ class StudentDetailView(APIView):
         student = self._get_student(pk)
         if not student:
             return error_response('Student not found.', status_code=404)
-        serializer = UpdateStudentSerializer(student, data=request.data, partial=True)
+
+        # is_active goes through deactivate/reactivate_student rather than the
+        # generic serializer save — both also flip the login account's
+        # is_active, which a plain field update here would miss.
+        requested_active = request.data.get('is_active', None)
+        data = {k: v for k, v in request.data.items() if k != 'is_active'}
+
+        serializer = UpdateStudentSerializer(student, data=data, partial=True)
         if not serializer.is_valid():
             return error_response('Validation failed.', serializer.errors)
         serializer.save()
+
+        if requested_active is True:
+            reactivate_student(student)
+        elif requested_active is False:
+            deactivate_student(student)
+
         return success_response(
             data=StudentSerializer(student).data,
             message='Student updated.',

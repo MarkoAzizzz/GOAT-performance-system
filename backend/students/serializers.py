@@ -11,10 +11,17 @@ class BranchSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'location', 'is_active']
 
 
+class CreateBranchSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Branch
+        fields = ['name', 'location']
+
+
 class StudentSerializer(serializers.ModelSerializer):
     full_name = serializers.ReadOnlyField()
     email = serializers.ReadOnlyField()
     branch_name = serializers.CharField(source='branch.name', read_only=True)
+    last_assessment_date = serializers.SerializerMethodField()
 
     class Meta:
         model = Student
@@ -22,9 +29,16 @@ class StudentSerializer(serializers.ModelSerializer):
             'id', 'student_id', 'full_name', 'email',
             'sport', 'rating', 'branch', 'branch_name',
             'join_date', 'is_active', 'profile_photo',
-            'created_at',
+            'last_assessment_date', 'created_at',
         ]
         read_only_fields = ['id', 'student_id', 'rating', 'created_at']
+
+    def get_last_assessment_date(self, obj):
+        return (
+            obj.assessments.order_by('-assessment_date')
+            .values_list('assessment_date', flat=True)
+            .first()
+        )
 
 
 class CreateStudentSerializer(serializers.Serializer):
@@ -44,7 +58,10 @@ class CreateStudentSerializer(serializers.Serializer):
 class UpdateStudentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Student
-        fields = ['sport', 'branch', 'join_date', 'is_active', 'profile_photo']
+        # is_active is deliberately excluded — it's handled by
+        # deactivate_student/reactivate_student in the view, which also
+        # flips the login account's is_active, not just the Student row.
+        fields = ['sport', 'branch', 'join_date', 'profile_photo']
 
 
 class ResetPasswordSerializer(serializers.Serializer):
